@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="AspBaseProj.Application/AspBaseProj.Application.csproj" />
+  <Project Path="AspBaseProj.Domain/AspBaseProj.Domain.csproj" />
+  <Project Path="AspBaseProj.Infrastructure/AspBaseProj.Infrastructure.csproj" />
+  <Project Path="AspBaseProj.Presentation/AspBaseProj.Presentation.csproj" />
+</Solution>
