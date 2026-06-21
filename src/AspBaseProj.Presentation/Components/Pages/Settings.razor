@@ -1,0 +1,52 @@
+@page "/admin/settings"
+@rendermode InteractiveServer
+@inject ApiClient Api
+
+<PageTitle>System Settings</PageTitle>
+
+<h2 class="mb-4">⚙️ System Settings</h2>
+
+@if (settings is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var s in settings)
+        {
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted text-uppercase small">@s.Key</h6>
+                        <div class="input-group">
+                            <input class="form-control form-control-sm" @bind="editValues[s.Key]" />
+                            <Button Color="Color.Primary" Size="Size.Small" OnClick="() => Save(s.Key)">💾 Save</Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<SettingDto>? settings;
+    private Dictionary<string, string> editValues = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        settings = await Api.GetSettingsAsync();
+        if (settings is not null)
+        {
+            foreach (var s in settings)
+                editValues[s.Key] = s.Value ?? "";
+        }
+    }
+
+    private async Task Save(string key)
+    {
+        await Api.UpdateSettingAsync(key, editValues.GetValueOrDefault(key, ""));
+        settings = await Api.GetSettingsAsync();
+    }
+}

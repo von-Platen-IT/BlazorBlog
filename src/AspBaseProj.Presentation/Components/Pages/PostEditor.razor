@@ -1,0 +1,97 @@
+@page "/posts/new"
+@page "/posts/{id:guid}/edit"
+@rendermode InteractiveServer
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsEdit ? "Edit Post" : "New Post")</PageTitle>
+
+<h2 class="mb-4">@(IsEdit ? "✏️ Edit Post" : "✏️ New Post")</h2>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Title</label>
+            <input class="form-control" @bind="title" placeholder="Enter post title..." />
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Content (Markdown)</label>
+            <textarea class="form-control" rows="15" @bind="content"
+                      placeholder="Write your post in Markdown..."></textarea>
+        </div>
+        <div class="mb-3 form-check form-switch">
+            <input type="checkbox" class="form-check-input" @bind="isPublished" id="publishSwitch" />
+            <label class="form-check-label" for="publishSwitch">Published</label>
+        </div>
+        <div class="d-flex gap-2">
+            <Button Color="Color.Primary" OnClick="Save" IsDisabled="isLoading">
+                @(IsEdit ? "Update" : "Create")
+            </Button>
+            @if (IsEdit)
+            {
+                <Button Color="Color.Danger" OnClick="Delete" IsDisabled="isLoading">Delete</Button>
+            }
+            <a href="/" class="btn btn-secondary">Cancel</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    private bool IsEdit => Id.HasValue;
+    private string title = "";
+    private string content = "";
+    private bool isPublished;
+    private string? error;
+    private bool isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEdit)
+        {
+            var post = await Api.GetPostAsync(Id!.Value);
+            if (post is not null)
+            {
+                title = post.Title;
+                content = post.Content;
+                isPublished = post.IsPublished;
+            }
+        }
+    }
+
+    private async Task Save()
+    {
+        isLoading = true;
+        error = null;
+        var dto = new PostDto(Guid.Empty, title, content, Guid.Empty, isPublished, DateTime.UtcNow, null, null);
+
+        if (IsEdit)
+        {
+            var result = await Api.UpdatePostAsync(Id!.Value, dto);
+            if (result is not null) Navigation.NavigateTo($"/posts/{Id}");
+            else error = "Failed to update post.";
+        }
+        else
+        {
+            var result = await Api.CreatePostAsync(dto);
+            if (result is not null) Navigation.NavigateTo($"/posts/{result.Id}");
+            else error = "Failed to create post.";
+        }
+        isLoading = false;
+    }
+
+    private async Task Delete()
+    {
+        if (!IsEdit) return;
+        if (await Api.DeletePostAsync(Id!.Value))
+            Navigation.NavigateTo("/");
+        else
+            error = "Failed to delete post.";
+    }
+}

@@ -1,0 +1,56 @@
+@using AspBaseProj.Presentation.Components.Shared
+
+<div class="card mb-2 @(Level > 0 ? "ms-4" : "")">
+    <div class="card-body py-2">
+        <strong>@(Comment.User?.UserName ?? Comment.GuestName ?? "Anonymous")</strong>
+        @if (!Comment.IsApproved) { <span class="badge bg-warning">Pending</span> }
+        <p class="mb-1">@Comment.Content</p>
+        <small class="text-muted">@Comment.CreatedAt.ToString("g")</small>
+        <button class="btn btn-sm btn-link" @onclick="OnReplyClicked">Reply</button>
+
+        @if (ShowReplyForm)
+        {
+            <div class="mt-2">
+                @if (!IsAuthenticated)
+                {
+                    <input class="form-control form-control-sm mb-1" placeholder="Your Name" @bind="ReplyGuestName" />
+                    <input class="form-control form-control-sm mb-1" placeholder="Your Email" @bind="ReplyGuestEmail" />
+                }
+                <textarea class="form-control form-control-sm mb-1" rows="2" @bind="ReplyText" placeholder="Write a reply..."></textarea>
+                <button class="btn btn-sm btn-primary" @onclick="OnSubmitReply">Reply</button>
+                <button class="btn btn-sm btn-secondary ms-1" @onclick="() => ShowReplyForm = false">Cancel</button>
+            </div>
+        }
+
+        @if (Comment.Replies is { Count: > 0 })
+        {
+            @foreach (var reply in Comment.Replies)
+            {
+                <CommentView Comment="reply" Level="Level + 1" IsAuthenticated="IsAuthenticated"
+                             OnReplyAdded="OnReplyAdded" />
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public required CommentDto Comment { get; set; }
+    [Parameter] public int Level { get; set; }
+    [Parameter] public bool IsAuthenticated { get; set; }
+    [Parameter] public EventCallback OnReplyAdded { get; set; }
+
+    private bool ShowReplyForm;
+    private string ReplyText = "";
+    private string ReplyGuestName = "";
+    private string ReplyGuestEmail = "";
+
+    private void OnReplyClicked() => ShowReplyForm = !ShowReplyForm;
+
+    private async Task OnSubmitReply()
+    {
+        if (string.IsNullOrWhiteSpace(ReplyText)) return;
+        await OnReplyAdded.InvokeAsync((Comment.Id, ReplyText, ReplyGuestName, ReplyGuestEmail));
+        ShowReplyForm = false;
+        ReplyText = "";
+    }
+}

@@ -1,0 +1,46 @@
+@page "/register"
+@rendermode InteractiveServer
+
+<PageTitle>Register</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <h2>Register</h2>
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-danger">@error</div>
+        }
+        <form method="post" action="/api/auth/register" data-enhance="false">
+            <AntiforgeryToken />
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input name="userName" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email (optional)</label>
+                <input type="email" name="email" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Register</button>
+        </form>
+
+        <hr />
+        <p class="text-center">Or sign up with</p>
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="/api/auth/login/google" class="btn btn-outline-danger">Google</a>
+            <a href="/api/auth/login/github" class="btn btn-outline-dark">GitHub</a>
+            <a href="/api/auth/login/microsoft" class="btn btn-outline-primary">Microsoft</a>
+        </div>
+
+        <p class="mt-3 text-center">
+            Already have an account? <a href="/login">Login</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] private string? error { get; set; }
+}

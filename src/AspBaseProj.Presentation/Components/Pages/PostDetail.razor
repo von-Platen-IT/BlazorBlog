@@ -1,0 +1,118 @@
+@page "/posts/{id:guid}"
+@rendermode InteractiveServer
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<PageTitle>@(post?.Title ?? "Post")</PageTitle>
+
+@if (post is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <article class="mb-5">
+        <h1 class="mb-2">@post.Title</h1>
+        <p class="text-muted mb-4">
+            By <strong>@(post.Author?.UserName ?? "Unknown")</strong> on @post.PublishedAt?.ToString("f")
+        </p>
+        <hr />
+        <div class="post-content">
+            @((MarkupString)RenderMarkdown(post.Content))
+        </div>
+    </article>
+
+    <hr />
+    <h3 class="mb-3">💬 Comments</h3>
+
+    @if (comments is not null)
+    {
+        @foreach (var comment in comments)
+        {
+            <CommentView Comment="comment" Level="0" IsAuthenticated="isAuthenticated"
+                         OnReplyAdded="HandleReplyAdded" />
+        }
+    }
+
+    @if (showGuestThankYou)
+    {
+        <div class="alert alert-success shadow-sm mt-4" role="alert">
+            <h5 class="alert-heading">✅ Vielen Dank!</h5>
+            <p class="mb-0">Ihr Kommentar wird von einem Administrator geprüft und anschließend freigeschaltet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card mt-4 shadow-sm">
+            <div class="card-body">
+                <h5>Add a Comment</h5>
+                @if (!isAuthenticated)
+                {
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <input class="form-control form-control-sm" placeholder="Your Name" @bind="guestName" />
+                        </div>
+                        <div class="col-md-6">
+                            <input class="form-control form-control-sm" placeholder="Your Email" @bind="guestEmail" />
+                        </div>
+                    </div>
+                }
+                <textarea class="form-control mb-2" rows="3" @bind="newComment" placeholder="Write a comment..."></textarea>
+                <Button Color="Color.Primary" OnClick="AddComment" IsDisabled="string.IsNullOrWhiteSpace(newComment)">Submit</Button>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private PostDto? post;
+    private List<CommentDto>? comments;
+    private string newComment = "";
+    private string guestName = "";
+    private string guestEmail = "";
+    private bool isAuthenticated;
+    private bool showGuestThankYou;
+
+    protected override async Task OnInitializedAsync()
+    {
+        post = await Api.GetPostAsync(Id);
+        comments = await Api.GetCommentsAsync(Id);
+        var user = await Api.GetCurrentUserAsync();
+        isAuthenticated = user is not null;
+    }
+
+    private async Task AddComment()
+    {
+        if (string.IsNullOrWhiteSpace(newComment)) return;
+        await Api.AddCommentAsync(Id, newComment, guestName, guestEmail);
+        newComment = "";
+
+        if (!isAuthenticated)
+        {
+            showGuestThankYou = true;
+        }
+        else
+        {
+            comments = await Api.GetCommentsAsync(Id);
+        }
+    }
+
+    private async Task HandleReplyAdded(object args)
+    {
+        var (commentId, text, name, email) = ((Guid, string, string, string))args;
+        await Api.ReplyToCommentAsync(commentId, text, name, email);
+        comments = await Api.GetCommentsAsync(Id);
+    }
+
+    private static string RenderMarkdown(string markdown)
+    {
+        var html = markdown
+            .Replace("&", "&").Replace("<", "<").Replace(">", ">")
+            .Replace("\n\n", "</p><p>")
+            .Replace("**", "<strong>").Replace("**", "</strong>")
+            .Replace("*", "<em>").Replace("*", "</em>");
+        return $"<p>{html}</p>";
+    }
+}

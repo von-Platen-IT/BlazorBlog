@@ -1,0 +1,120 @@
+@inherits LayoutComponentBase
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="d-flex flex-column min-vh-100">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 shadow-sm">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold fs-5" href="/">📝 BlazorBlog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item"><NavLink class="nav-link" href="/">Home</NavLink></li>
+                        @if (IsAuthenticated && (IsAuthor || IsAdmin || IsRoot))
+                        {
+                            <li class="nav-item"><NavLink class="nav-link" href="/posts/new">✏️ New Post</NavLink></li>
+                        }
+                        @if (IsAdmin || IsRoot)
+                        {
+                            <li class="nav-item"><NavLink class="nav-link" href="/admin/moderation">✅ Moderation</NavLink></li>
+                        }
+                        @if (IsRoot)
+                        {
+                            <li class="nav-item"><NavLink class="nav-link" href="/admin/users">👥 Users</NavLink></li>
+                            <li class="nav-item"><NavLink class="nav-link" href="/admin/settings">⚙️ Settings</NavLink></li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (IsAuthenticated)
+                        {
+                            <li class="nav-item"><NavLink class="nav-link" href="/profile">👤 @UserName</NavLink></li>
+                            <li class="nav-item d-flex align-items-center ms-2">
+                                <form method="post" action="/api/auth/logout" data-enhance="false">
+                                    <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><NavLink class="nav-link" href="/login">Login</NavLink></li>
+                            <li class="nav-item"><NavLink class="nav-link" href="/register">Register</NavLink></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow-1">
+        <div class="container mt-4 mb-5">
+            @Body
+        </div>
+    </main>
+
+    <footer class="bg-dark text-light py-4 mt-auto">
+        <div class="container">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <h5 class="fw-bold mb-2">📝 BlazorBlog</h5>
+                    <p class="text-secondary small mb-0">
+                        A multi-user blog platform built with .NET 10, ASP.NET Core & BootstrapBlazor.
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-uppercase small fw-bold text-secondary mb-2">Navigation</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-1"><a href="/" class="text-light text-decoration-none">Home</a></li>
+                        <li class="mb-1"><a href="/swagger" class="text-light text-decoration-none">API Docs</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="text-uppercase small fw-bold text-secondary mb-2">Account</h6>
+                    <ul class="list-unstyled small">
+                        @if (IsAuthenticated)
+                        {
+                            <li class="mb-1"><a href="/profile" class="text-light text-decoration-none">View Profile</a></li>
+                            <li>
+                                <form method="post" action="/api/auth/logout" data-enhance="false">
+                                    <button type="submit" class="btn btn-link text-secondary p-0 small">Sign out</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="mb-1"><a href="/login" class="text-light text-decoration-none">Login</a></li>
+                            <li class="mb-1"><a href="/register" class="text-light text-decoration-none">Register</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <hr class="border-secondary mt-3 mb-2" />
+            <div class="text-center text-secondary small">
+                &copy; 2026 BlazorBlog &mdash; Powered by ASP.NET Core & BootstrapBlazor
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private bool IsAuthenticated;
+    private bool IsAuthor;
+    private bool IsAdmin;
+    private bool IsRoot;
+    private string? UserName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await Api.GetCurrentUserAsync();
+        if (user is not null)
+        {
+            IsAuthenticated = true;
+            UserName = user.UserName;
+            IsRoot = user.IsRoot;
+            IsAdmin = user.Groups.Contains("Admin");
+            IsAuthor = user.Groups.Contains("Author");
+        }
+    }
+}

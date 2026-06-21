@@ -1,0 +1,176 @@
+@page "/admin/users"
+@rendermode InteractiveServer
+@inject ApiClient Api
+
+<PageTitle>User Management</PageTitle>
+
+<h2 class="mb-4">👥 User Management</h2>
+
+@if (users is null || allGroups is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="mb-3 p-3 bg-light rounded border d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-bold me-2">Bulk Actions:</span>
+        <span class="text-muted small me-2">@selectedRows.Count user(s) selected</span>
+        <div class="dropdown d-inline">
+            <Button Color="Color.Success" Size="Size.Small" class="dropdown-toggle" data-bs-toggle="dropdown"
+                    IsDisabled="selectedRows.Count == 0">
+                + Assign Group
+            </Button>
+            <ul class="dropdown-menu">
+                @foreach (var g in allGroups)
+                {
+                    <li>
+                        <button class="dropdown-item" @onclick="() => BulkAssignGroup(g.Id)">@g.Name</button>
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="dropdown d-inline">
+            <Button Color="Color.Warning" Size="Size.Small" class="dropdown-toggle" data-bs-toggle="dropdown"
+                    IsDisabled="selectedRows.Count == 0">
+                - Remove Group
+            </Button>
+            <ul class="dropdown-menu">
+                @foreach (var g in allGroups)
+                {
+                    <li>
+                        <button class="dropdown-item" @onclick="() => BulkRemoveGroup(g.Id)">@g.Name</button>
+                    </li>
+                }
+            </ul>
+        </div>
+        <Button Color="Color.Danger" Size="Size.Small" OnClick="BulkDelete" IsDisabled="selectedRows.Count == 0">
+            🗑️ Delete Selected
+        </Button>
+    </div>
+
+    <Table TItem="UserDisplayRow" Items="displayRows"
+           PageItemsSource="new int[] { 10, 25, 50 }" IsPagination="true" IsStriped="true"
+           IsMultipleSelect="true" @bind-SelectedRows="selectedRows">
+        <TableColumns>
+            <TableColumn @bind-Field="@context.UserName" Text="Username" />
+            <TableColumn @bind-Field="@context.Email" Text="Email" />
+            <TableColumn @bind-Field="@context.GroupsDisplay" Text="Groups" />
+            <TableColumn @bind-Field="@context.IsRootDisplay" Text="Root" />
+        </TableColumns>
+        <RowButtonTemplate>
+            @if (!context.IsRoot)
+            {
+                <div class="dropdown d-inline me-1">
+                    <Button Color="Color.Secondary" Size="Size.Small" class="dropdown-toggle" data-bs-toggle="dropdown">+ Group</Button>
+                    <ul class="dropdown-menu">
+                        @foreach (var g in allGroups.Where(g => !context.UserGroups.Contains(g.Name)))
+                        {
+                            <li>
+                                <button class="dropdown-item" @onclick="() => AddGroup(context.UserId, g.Id)">@g.Name</button>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                @foreach (var g in context.UserGroups)
+                {
+                    <Button Color="Color.Warning" Size="Size.Small" OnClick="() => RemoveGroup(context.UserId, g)" Class="me-1">- @g</Button>
+                }
+                <Button Color="Color.Danger" Size="Size.Small" OnClick="() => DeleteUser(context.UserId)">🗑️</Button>
+            }
+            else
+            {
+                <Badge Color="Color.Warning">Root — cannot modify</Badge>
+            }
+        </RowButtonTemplate>
+    </Table>
+}
+
+@code {
+    private List<UserDto>? users;
+    private List<GroupDto>? allGroups;
+    private List<UserDisplayRow>? displayRows;
+    private List<UserDisplayRow> selectedRows = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Reload();
+    }
+
+    private async Task AddGroup(Guid userId, Guid groupId)
+    {
+        await Api.AssignGroupAsync(userId, groupId);
+        await Reload();
+    }
+
+    private async Task RemoveGroup(Guid userId, string groupName)
+    {
+        var group = allGroups?.FirstOrDefault(g => g.Name == groupName);
+        if (group is not null)
+        {
+            await Api.RemoveGroupAsync(userId, group.Id);
+            await Reload();
+        }
+    }
+
+    private async Task DeleteUser(Guid userId)
+    {
+        await Api.DeleteUserAsync(userId);
+        await Reload();
+    }
+
+    private async Task BulkAssignGroup(Guid groupId)
+    {
+        foreach (var row in selectedRows.Where(r => !r.IsRoot))
+            await Api.AssignGroupAsync(row.UserId, groupId);
+        selectedRows.Clear();
+        await Reload();
+    }
+
+    private async Task BulkRemoveGroup(Guid groupId)
+    {
+        foreach (var row in selectedRows.Where(r => !r.IsRoot))
+            await Api.RemoveGroupAsync(row.UserId, groupId);
+        selectedRows.Clear();
+        await Reload();
+    }
+
+    private async Task BulkDelete()
+    {
+        foreach (var row in selectedRows.Where(r => !r.IsRoot))
+            await Api.DeleteUserAsync(row.UserId);
+        selectedRows.Clear();
+        await Reload();
+    }
+
+    private async Task Reload()
+    {
+        users = await Api.GetUsersAsync();
+        allGroups = await Api.GetGroupsAsync();
+        RefreshDisplay();
+    }
+
+    private void RefreshDisplay()
+    {
+        displayRows = users?.Select(u => new UserDisplayRow
+        {
+            UserId = u.Id,
+            UserName = u.UserName,
+            Email = u.Email ?? "-",
+            GroupsDisplay = u.Groups.Count > 0 ? string.Join(", ", u.Groups) : "-",
+            IsRootDisplay = u.IsRoot ? "✅ Yes" : "No",
+            IsRoot = u.IsRoot,
+            UserGroups = u.Groups
+        }).ToList();
+    }
+
+    private class UserDisplayRow
+    {
+        public Guid UserId { get; set; }
+        public string UserName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string GroupsDisplay { get; set; } = "";
+        public string IsRootDisplay { get; set; } = "";
+        public bool IsRoot { get; set; }
+        public List<string> UserGroups { get; set; } = [];
+    }
+}

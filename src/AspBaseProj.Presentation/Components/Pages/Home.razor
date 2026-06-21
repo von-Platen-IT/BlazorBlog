@@ -1,0 +1,94 @@
+@page "/"
+@rendermode InteractiveServer
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<PageTitle>BlazorBlog</PageTitle>
+
+<h1 class="mb-4">📝 Latest Posts</h1>
+
+@if (posts is null)
+{
+    <p>Loading...</p>
+}
+else if (posts.Count == 0)
+{
+    <div class="text-center py-5">
+        <h4 class="text-muted">No posts yet.</h4>
+        @if (isAuthenticated)
+        {
+            <a href="/posts/new" class="btn btn-primary mt-2">Write the first post</a>
+        }
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var post in posts)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm cursor-pointer" @onclick='() => GoToPost(post.Id)'>
+                    <div class="card-body">
+                        <h5 class="card-title">@post.Title</h5>
+                        <p class="card-text text-muted small">@Truncate(post.Content, 120)</p>
+                    </div>
+                    <div class="card-footer text-muted small bg-transparent">
+                        By @(post.Author?.UserName ?? "Unknown") on @post.PublishedAt?.ToString("d")
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => LoadPage(currentPage - 1)">«</button>
+                    </li>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <button class="page-link" @onclick="() => LoadPage(i)">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => LoadPage(currentPage + 1)">»</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+}
+
+@code {
+    private List<PostDto>? posts;
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await Api.GetCurrentUserAsync();
+        isAuthenticated = user is not null;
+        await LoadPage(1);
+    }
+
+    private async Task LoadPage(int page)
+    {
+        var result = await Api.GetPostsAsync(page, 9);
+        if (result is not null)
+        {
+            posts = result.Posts;
+            currentPage = result.Page;
+            totalPages = (int)Math.Ceiling(result.Total / (double)9);
+        }
+    }
+
+    private void GoToPost(Guid id) => Navigation.NavigateTo($"/posts/{id}");
+
+    private static string Truncate(string text, int maxLength) =>
+        text.Length <= maxLength ? text : text[..maxLength] + "...";
+}

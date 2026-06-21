@@ -1,0 +1,112 @@
+@page "/admin/moderation"
+@rendermode InteractiveServer
+@inject ApiClient Api
+
+<PageTitle>Moderation Queue</PageTitle>
+
+<h2 class="mb-4">✅ Moderation Queue</h2>
+
+@if (comments is null)
+{
+    <p>Loading...</p>
+}
+else if (comments.Count == 0)
+{
+    <div class="text-center py-5">
+        <h4 class="text-muted">No pending comments.</h4>
+        <p class="text-secondary">All comments have been reviewed.</p>
+    </div>
+}
+else
+{
+    <div class="mb-3 d-flex gap-2">
+        <Button Color="Color.Success" OnClick="BulkApprove" IsDisabled="selectedIds.Count == 0">
+            ✅ Approve Selected (@selectedIds.Count)
+        </Button>
+        <Button Color="Color.Danger" OnClick="BulkReject" IsDisabled="selectedIds.Count == 0">
+            ❌ Reject Selected (@selectedIds.Count)
+        </Button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th style="width:40px"><input type="checkbox" @onchange="ToggleAll" /></th>
+                    <th>Author</th>
+                    <th>Content</th>
+                    <th>Date</th>
+                    <th style="width:180px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in comments)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" checked="@selectedIds.Contains(c.Id)"
+                                   @onchange="() => ToggleSelect(c.Id)" />
+                        </td>
+                        <td>@(c.GuestName ?? "Guest")</td>
+                        <td>@c.Content</td>
+                        <td class="text-nowrap small">@c.CreatedAt.ToString("g")</td>
+                        <td>
+                            <Button Color="Color.Success" Size="Size.Small" OnClick="() => Approve(c.Id)">Approve</Button>
+                            <Button Color="Color.Danger" Size="Size.Small" OnClick="() => Reject(c.Id)">Reject</Button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<CommentDto>? comments;
+    private HashSet<Guid> selectedIds = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        comments = await Api.GetPendingCommentsAsync();
+    }
+
+    private void ToggleSelect(Guid id)
+    {
+        if (selectedIds.Contains(id)) selectedIds.Remove(id);
+        else selectedIds.Add(id);
+    }
+
+    private void ToggleAll(ChangeEventArgs e)
+    {
+        if ((bool)(e.Value ?? false) && comments is not null)
+            selectedIds = comments.Select(c => c.Id).ToHashSet();
+        else
+            selectedIds.Clear();
+    }
+
+    private async Task Approve(Guid id)
+    {
+        await Api.ApproveCommentAsync(id);
+        comments = await Api.GetPendingCommentsAsync();
+    }
+
+    private async Task Reject(Guid id)
+    {
+        await Api.RejectCommentAsync(id);
+        comments = await Api.GetPendingCommentsAsync();
+    }
+
+    private async Task BulkApprove()
+    {
+        await Api.BulkApproveAsync(selectedIds.ToList());
+        selectedIds.Clear();
+        comments = await Api.GetPendingCommentsAsync();
+    }
+
+    private async Task BulkReject()
+    {
+        await Api.BulkRejectAsync(selectedIds.ToList());
+        selectedIds.Clear();
+        comments = await Api.GetPendingCommentsAsync();
+    }
+}

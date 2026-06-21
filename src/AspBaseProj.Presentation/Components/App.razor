@@ -1,0 +1,19 @@
+@using BootstrapBlazor.Components
+@using AspBaseProj.Presentation.Components.Layout
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="_content/BootstrapBlazor/css/bootstrap.blazor.bundle.min.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
+    <script src="_content/BootstrapBlazor/js/bootstrap.blazor.bundle.min.js"></script>
+</body>
+</html>
