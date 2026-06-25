@@ -14,6 +14,8 @@ public class BlogDbContext : DbContext
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Media> Media => Set<Media>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    public DbSet<PostRating> PostRatings => Set<PostRating>();
+    public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

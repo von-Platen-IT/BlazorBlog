@@ -1,0 +1,146 @@
+@using AspBaseProj.Presentation.Components.Shared
+@inject ApiClient Api
+
+<div class="comment-section mt-4">
+    @if (isLoading)
+    {
+        <p class="text-muted">Loading comments...</p>
+    }
+    else
+    {
+        <h3 class="mb-3">💬 Comments @(comments.Count > 0 ? $"({comments.Count})" : "")</h3>
+
+        @* Top-Level Comment Form *@
+        @if (!showGuestThankYou)
+        {
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Add a Comment</h5>
+                    @if (!isAuthenticated)
+                    {
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <input class="form-control form-control-sm" placeholder="Your Name"
+                                       @bind="newCommentGuestName" />
+                            </div>
+                            <div class="col-md-6">
+                                <input class="form-control form-control-sm" placeholder="Your Email"
+                                       @bind="newCommentGuestEmail" />
+                            </div>
+                        </div>
+                    }
+                    <textarea class="form-control mb-2" rows="3" @bind="newCommentText"
+                              @bind:event="oninput"
+                              placeholder="Write a comment..."></textarea>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-primary"
+                                @onclick="SubmitTopLevelCommentAsync"
+                                disabled="@(string.IsNullOrWhiteSpace(newCommentText) || isSubmitting)">
+                            @(isSubmitting ? "Posting..." : "Submit")
+                        </button>
+                        @if (!string.IsNullOrEmpty(error))
+                        {
+                            <span class="text-danger small">@error</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success shadow-sm mb-4" role="alert">
+                <h5 class="alert-heading">✅ Thank you!</h5>
+                <p class="mb-0">Your comment has been submitted and is pending approval by an administrator.</p>
+                <button class="btn btn-outline-success btn-sm mt-2" @onclick='() => showGuestThankYou = false'>
+                    Write another comment
+                </button>
+            </div>
+        }
+
+        @* Comment List *@
+        @if (comments.Count == 0)
+        {
+            <p class="text-muted">No comments yet. Be the first to comment!</p>
+        }
+        else
+        {
+            @foreach (var comment in comments)
+            {
+                <CommentNode Comment="comment" Depth="0" IsAuthenticated="isAuthenticated" />
+            }
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public Guid PostId { get; set; }
+
+    private List<CommentDto> comments = new();
+    private bool isAuthenticated;
+    private bool isLoading = true;
+    private bool isSubmitting;
+    private bool showGuestThankYou;
+    private string newCommentText = "";
+    private string newCommentGuestName = "";
+    private string newCommentGuestEmail = "";
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await Api.GetCurrentUserAsync();
+        isAuthenticated = user is not null;
+
+        await LoadCommentsAsync();
+    }
+
+    private async Task LoadCommentsAsync()
+    {
+        isLoading = true;
+        error = null;
+        var result = await Api.GetCommentsAsync(PostId);
+        if (result is not null)
+        {
+            comments = result;
+        }
+        else
+        {
+            error = "Failed to load comments.";
+        }
+        isLoading = false;
+    }
+
+    private async Task SubmitTopLevelCommentAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newCommentText) || isSubmitting) return;
+        isSubmitting = true;
+        error = null;
+
+        var result = await Api.AddCommentAsync(PostId, newCommentText, newCommentGuestName, newCommentGuestEmail);
+
+        if (result is not null)
+        {
+            if (result.IsApproved)
+            {
+                // Authenticated user: insert immediately at the top
+                comments.Insert(0, result);
+                newCommentText = "";
+                newCommentGuestName = "";
+                newCommentGuestEmail = "";
+            }
+            else
+            {
+                // Guest: show thank-you, the comment will appear after approval
+                newCommentText = "";
+                newCommentGuestName = "";
+                newCommentGuestEmail = "";
+                showGuestThankYou = true;
+            }
+        }
+        else
+        {
+            error = "Failed to post comment. Please try again.";
+        }
+
+        isSubmitting = false;
+    }
+}

@@ -15,6 +15,7 @@
                         <li class="nav-item"><NavLink class="nav-link" href="/">Home</NavLink></li>
                         @if (IsAuthenticated && (IsAuthor || IsAdmin || IsRoot))
                         {
+                            <li class="nav-item"><NavLink class="nav-link" href="/my/posts">📋 My Posts</NavLink></li>
                             <li class="nav-item"><NavLink class="nav-link" href="/posts/new">✏️ New Post</NavLink></li>
                         }
                         @if (IsAdmin || IsRoot)
@@ -33,6 +34,7 @@
                             <li class="nav-item"><NavLink class="nav-link" href="/profile">👤 @UserName</NavLink></li>
                             <li class="nav-item d-flex align-items-center ms-2">
                                 <form method="post" action="/api/auth/logout" data-enhance="false">
+                                    <AntiforgeryToken />
                                     <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
                                 </form>
                             </li>
@@ -67,6 +69,10 @@
                     <h6 class="text-uppercase small fw-bold text-secondary mb-2">Navigation</h6>
                     <ul class="list-unstyled small">
                         <li class="mb-1"><a href="/" class="text-light text-decoration-none">Home</a></li>
+                        @if (IsAuthenticated && (IsAuthor || IsAdmin || IsRoot))
+                        {
+                            <li class="mb-1"><a href="/my/posts" class="text-light text-decoration-none">My Posts</a></li>
+                        }
                         <li class="mb-1"><a href="/swagger" class="text-light text-decoration-none">API Docs</a></li>
                     </ul>
                 </div>
@@ -78,6 +84,7 @@
                             <li class="mb-1"><a href="/profile" class="text-light text-decoration-none">View Profile</a></li>
                             <li>
                                 <form method="post" action="/api/auth/logout" data-enhance="false">
+                                    <AntiforgeryToken />
                                     <button type="submit" class="btn btn-link text-secondary p-0 small">Sign out</button>
                                 </form>
                             </li>

@@ -1,3 +1,79 @@
 .cursor-pointer { cursor: pointer; }
 .post-content { line-height: 1.8; font-size: 1.1rem; }
 .post-content p { margin-bottom: 1rem; }
+
+/* ============================================================
+   Comment Tree Lines
+   ============================================================ */
+
+/* Thread container: provides the vertical line for nested comments */
+.comment-thread {
+    position: relative;
+}
+
+.comment-thread--nested {
+    padding-left: 28px;
+    margin-left: 12px;
+}
+
+/* Vertical line connecting nested comments to their parent */
+.comment-thread--nested::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: -8px;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+    border-radius: 1px;
+}
+
+/* Comment node card */
+.comment-node {
+    position: relative;
+    padding: 12px 16px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: #fff;
+    margin-bottom: 10px;
+    transition: box-shadow 0.15s ease;
+}
+
+.comment-node:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Horizontal connector line from vertical line to comment node */
+.comment-thread--nested .comment-node::before {
+    content: '';
+    position: absolute;
+    left: -18px;
+    top: 22px;
+    width: 18px;
+    height: 2px;
+    background: #dee2e6;
+    border-radius: 1px;
+}
+
+/* Reply form inside comment */
+.comment-node .bg-light {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+}
+
+/* Mobile: reduce indentation */
+@media (max-width: 767.98px) {
+    .comment-thread--nested {
+        padding-left: 18px;
+        margin-left: 6px;
+    }
+
+    .comment-thread--nested::before {
+        left: 6px;
+    }
+
+    .comment-thread--nested .comment-node::before {
+        left: -12px;
+        width: 12px;
+    }
+}

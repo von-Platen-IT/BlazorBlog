@@ -15,4 +15,6 @@ public class Post
     public AppUser Author { get; set; } = null!;
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<Media> Media { get; set; } = new List<Media>();
+    public ICollection<PostRating> Ratings { get; set; } = new List<PostRating>();
+    public ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
 }

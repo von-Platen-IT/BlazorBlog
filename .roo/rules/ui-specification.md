@@ -5,7 +5,7 @@
 > **Edit this file to reflect UI changes** — the AI agent will update code accordingly.
 
 **Technology:** .NET 10 Fullstack (ASP.NET Core, PostgreSQL, EF Core)
-**Last Updated:** 2026-06-21 12:38
+**Last Updated:** 2026-06-22 18:15
 
 ---
 
@@ -15,13 +15,13 @@
 
 **Route:** `/`
 
-Chronological list of all published blog posts visible to all visitors (including unauthenticated). Shows post title, author, date, and excerpt.
+Chronological list of all published blog posts visible to all visitors (including unauthenticated). Shows post title, author, date, excerpt, and like/dislike counts.
 
 #### Components
 
 | Component | Type | Description |
 |-----------|------|-------------|
-| `PostList` | `list` | Chronological list of published posts with title, author, date, excerpt |
+| `PostList` | `list` | Chronological list of published posts with title, author, date, excerpt, like/dislike counts |
 | `Pagination` | `navigation` | Pagination controls for browsing posts |
 | `TopNav` | `navigation` | Top navigation bar with login/register or user menu |
 
@@ -30,6 +30,7 @@ Chronological list of all published blog posts visible to all visitors (includin
 - Click post to view detail
 - Navigate pages
 - Login/Register from nav
+- View like/dislike counts per post
 
 ---
 
@@ -37,23 +38,29 @@ Chronological list of all published blog posts visible to all visitors (includin
 
 **Route:** `/posts/:id`
 
-Full blog post view with rendered markdown content, embedded images, social media/video embeds, and the nested comment section.
+Full blog post view with rendered markdown content, embedded images, social media/video embeds, rating bar (like/dislike), bookmark button, and the nested comment section with visual tree-lines.
 
 #### Components
 
 | Component | Type | Description |
 |-----------|------|-------------|
 | `PostContent` | `detail` | Renders full post with markdown, images, and embedded social/video links |
-| `CommentSection` | `list` | Nested comment tree with reply functionality |
-| `CommentForm` | `form` | Form to add a comment (authenticated or guest with name/email) |
-| `ReplyForm` | `form` | Inline reply form for nested comments |
+| `RatingBar` | `actions` | Like (👍) and Dislike (👎) buttons with counts; authenticated users can toggle their vote |
+| `BookmarkButton` | `action` | Bookmark (🔖) toggle button for authenticated users |
+| `CommentSection` | `module` | Self-contained comment module: loads, displays, and manages the comment tree |
+| `CommentNode` | `list` | Recursive comment component with inline reply form, visual tree-lines for nesting hierarchy |
+| `CommentForm` | `form` | Top-level form to add a comment (authenticated or guest with name/email) |
+| `ReplyForm` | `form` | Inline reply form within each CommentNode |
 
 #### User Actions
 
 - Read post
-- Add comment
-- Reply to comment
-- View nested replies
+- Like/dislike post (authenticated users only; toggles between like/dislike/none)
+- Bookmark post (authenticated users only; toggle)
+- View like/dislike counts (all visitors)
+- Add comment (appears immediately for authenticated users; guests see ⏳ "Pending Approval" badge)
+- Reply to comment (appears immediately, nested under parent with tree-lines)
+- View nested replies with visual hierarchy (indentation + connecting lines)
 
 ---
 
@@ -139,6 +146,37 @@ Edit existing post. Authors can edit only their own posts; Admin/root can edit a
 - Manage images
 - Save changes
 - Delete post
+
+---
+
+### My Posts (Author Dashboard)
+
+**Route:** `/my/posts`
+
+Author's personal dashboard listing all their own posts (both published and drafts) and bookmarked posts. Shows comment counts, status badges, and provides quick actions for editing, publishing drafts, and deleting posts.
+
+#### Components
+
+| Component | Type | Description |
+|-----------|------|-------------|
+| `PostTable` | `table` | Responsive table (desktop) / card list (mobile) of all own posts with title, status badge, comment count, creation date, and action buttons |
+| `BookmarkTable` | `table` | Responsive table (desktop) / card list (mobile) of bookmarked posts with title, author, like/dislike/comment counts |
+| `FilterBar` | `navigation` | Filter buttons: All, Published, Drafts, Bookmarks |
+| `Pagination` | `navigation` | Pagination controls for browsing posts |
+| `PublishButton` | `action` | Quick-publish a draft without opening the editor |
+| `DeleteConfirmModal` | `modal` | Confirmation dialog before deleting a post |
+
+#### User Actions
+
+- View all own posts (published and drafts)
+- View bookmarked posts from other authors
+- Filter by status (All / Published / Drafts / Bookmarks)
+- Click post title to view detail
+- Edit post (✏️)
+- Publish draft directly (✅)
+- Delete post with confirmation (🗑️)
+- Navigate pages
+- Create new post (+ New Post button)
 
 ---
 
@@ -228,7 +266,7 @@ Swagger UI for exploring the Web API endpoints available to Author and Viewer ro
 
 ## Navigation Structure
 
-- **structure:** Top navigation bar visible on all pages. For unauthenticated users: Home, Login, Register. For authenticated users: Home, New Post (Author only), Moderation Queue (Admin/root only), User Management (root only), Settings (root only), Logout, User Profile menu. The application is a SPA with client-side routing — no full page round-trips.
+- **structure:** Top navigation bar visible on all pages. For unauthenticated users: Home, Login, Register. For authenticated users: Home, My Posts (Author/Admin/Root), New Post (Author/Admin/Root), Moderation Queue (Admin/root only), User Management (root only), Settings (root only), Logout, User Profile menu. The application is a SPA with client-side routing — no full page round-trips.
 
 ## Theme & Styling
 

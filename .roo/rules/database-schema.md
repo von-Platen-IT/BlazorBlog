@@ -5,7 +5,7 @@
 > **Edit this file to reflect schema changes** — the AI agent will update code accordingly.
 
 **Technology:** .NET 10 Fullstack (ASP.NET Core, PostgreSQL, EF Core)
-**Last Updated:** 2026-06-21 12:38
+**Last Updated:** 2026-06-22 18:15
 
 ---
 
@@ -75,6 +75,49 @@ Represents a blog post written by an author. Contains markdown content, supports
 - **Many To One** `AppUser`: Each post belongs to one author
 - **One To Many** `Comment`: A post has many comments
 - **One To Many** `Media`: A post can have multiple uploaded images stored in DB
+- **One To Many** `PostRating`: A post has many ratings (likes/dislikes)
+- **One To Many** `Bookmark`: A post can be bookmarked by many users
+
+---
+
+### PostRating
+
+Represents a like or dislike rating on a blog post by an authenticated user. One rating per user per post (unique constraint).
+
+#### Fields
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `Id` | `Guid` | No | Primary key |
+| `PostId` | `Guid` | No | FK to Post being rated |
+| `UserId` | `Guid` | No | FK to AppUser who rated |
+| `IsLike` | `bool` | No | True = Like, False = Dislike |
+| `CreatedAt` | `DateTime` | No | Rating creation timestamp |
+
+#### Relationships
+
+- **Many To One** `Post`: Each rating belongs to one post
+- **Many To One** `AppUser`: Each rating belongs to one user
+
+---
+
+### Bookmark
+
+Represents a bookmark/saved post by an authenticated user. One bookmark per user per post (unique constraint).
+
+#### Fields
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `Id` | `Guid` | No | Primary key |
+| `PostId` | `Guid` | No | FK to Post being bookmarked |
+| `UserId` | `Guid` | No | FK to AppUser who bookmarked |
+| `CreatedAt` | `DateTime` | No | Bookmark creation timestamp |
+
+#### Relationships
+
+- **Many To One** `Post`: Each bookmark belongs to one post
+- **Many To One** `AppUser`: Each bookmark belongs to one user
 
 ---
 
@@ -152,8 +195,14 @@ Key-value store for blog-wide configuration such as blog title, moderation toggl
 - `unnamed`: Index for nested comment retrieval
 - `unnamed`: Index for retrieving media by post
 - `unnamed`: Unique index on setting key
+- `unnamed`: Unique composite index on (PostId, UserId) for PostRating
+- `unnamed`: Index on PostId for PostRating count queries
+- `unnamed`: Unique composite index on (PostId, UserId) for Bookmark
+- `unnamed`: Index on UserId for Bookmark user queries
 
 ## Additional Notes
+
+The root superuser is seeded on first launch with credentials from appsettings.json (Blog section). Root is not assigned to any Group but has unrestricted permissions. Guest comments (UserId is null) require manual approval by Admin or root before becoming publicly visible. Authenticated users' comments are auto-approved. Images are stored as binary in the Media table, not on the filesystem. The database auto-migrates on first launch. PostgreSQL runs in Docker on host port 5433 mapped to container port 5432. PostRating enforces one vote per user per post (unique constraint on PostId+UserId). Bookmark enforces one bookmark per user per post (unique constraint on PostId+UserId).
 
 The root superuser is seeded on first launch with credentials from appsettings.json (Blog section). Root is not assigned to any Group but has unrestricted permissions. Guest comments (UserId is null) require manual approval by Admin or root before becoming publicly visible. Authenticated users' comments are auto-approved. Images are stored as binary in the Media table, not on the filesystem. The database auto-migrates on first launch. PostgreSQL runs in Docker on host port 5433 mapped to container port 5432.
 

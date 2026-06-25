@@ -11,10 +11,24 @@
 }
 else
 {
-    <article class="mb-5">
-        <h1 class="mb-2">@post.Title</h1>
+    <article class="mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h1 class="mb-0">@post.Title</h1>
+            @if (!post.IsPublished && isOwner)
+            {
+                <Badge Color="Color.Warning" Class="ms-2 fs-6">📝 Draft</Badge>
+            }
+        </div>
         <p class="text-muted mb-4">
-            By <strong>@(post.Author?.UserName ?? "Unknown")</strong> on @post.PublishedAt?.ToString("f")
+            By <strong>@(post.Author?.UserName ?? "Unknown")</strong>
+            @if (post.IsPublished)
+            {
+                <span> on @post.PublishedAt?.ToString("f")</span>
+            }
+            else
+            {
+                <span> — Created @post.CreatedAt.ToString("d")</span>
+            }
         </p>
         <hr />
         <div class="post-content">
@@ -22,45 +36,79 @@ else
         </div>
     </article>
 
-    <hr />
-    <h3 class="mb-3">💬 Comments</h3>
-
-    @if (comments is not null)
+    @if (!post.IsPublished && isOwner)
     {
-        @foreach (var comment in comments)
-        {
-            <CommentView Comment="comment" Level="0" IsAuthenticated="isAuthenticated"
-                         OnReplyAdded="HandleReplyAdded" />
-        }
-    }
-
-    @if (showGuestThankYou)
-    {
-        <div class="alert alert-success shadow-sm mt-4" role="alert">
-            <h5 class="alert-heading">✅ Vielen Dank!</h5>
-            <p class="mb-0">Ihr Kommentar wird von einem Administrator geprüft und anschließend freigeschaltet.</p>
+        @* Draft: Publish & Delete actions, no comments *@
+        <div class="d-flex gap-2 mb-4 p-3 bg-warning bg-opacity-10 rounded border border-warning">
+            <button class="btn btn-success"
+                    @onclick="PublishPostAsync"
+                    disabled="@isActionLoading">
+                @(isActionLoading ? "Publishing..." : "✅ Publish Now")
+            </button>
+            <button class="btn btn-outline-danger"
+                    @onclick='() => showDeleteConfirm = true'
+                    disabled="@isActionLoading">
+                🗑️ Delete Draft
+            </button>
+            <a href='/posts/@post.Id/edit' class="btn btn-outline-primary">✏️ Edit</a>
+            @if (!string.IsNullOrEmpty(actionError))
+            {
+                <span class="text-danger small align-self-center">@actionError</span>
+            }
+            @if (!string.IsNullOrEmpty(actionSuccess))
+            {
+                <span class="text-success small align-self-center">@actionSuccess</span>
+            }
         </div>
+
+        @* Delete Confirmation Modal *@
+        @if (showDeleteConfirm)
+        {
+            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Delete Draft</h5>
+                            <button type="button" class="btn-close" @onclick='() => showDeleteConfirm = false'></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete <strong>"@post.Title"</strong>?</p>
+                            <p class="text-danger small mb-0">This action cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" @onclick='() => showDeleteConfirm = false'>Cancel</button>
+                            <button class="btn btn-danger" @onclick="DeleteDraftAsync" disabled="@isActionLoading">
+                                @(isActionLoading ? "Deleting..." : "Delete")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     }
     else
     {
-        <div class="card mt-4 shadow-sm">
-            <div class="card-body">
-                <h5>Add a Comment</h5>
-                @if (!isAuthenticated)
-                {
-                    <div class="row g-2 mb-2">
-                        <div class="col-md-6">
-                            <input class="form-control form-control-sm" placeholder="Your Name" @bind="guestName" />
-                        </div>
-                        <div class="col-md-6">
-                            <input class="form-control form-control-sm" placeholder="Your Email" @bind="guestEmail" />
-                        </div>
-                    </div>
-                }
-                <textarea class="form-control mb-2" rows="3" @bind="newComment" placeholder="Write a comment..."></textarea>
-                <Button Color="Color.Primary" OnClick="AddComment" IsDisabled="string.IsNullOrWhiteSpace(newComment)">Submit</Button>
+        @* Published: Rating, Bookmark & Comments *@
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded shadow-sm">
+            <button class="btn @(userRating == "like" ? "btn-primary" : "btn-outline-primary") btn-sm"
+                    @onclick="ToggleLike" title="Like">
+                👍 <span class="ms-1">@likeCount</span>
+            </button>
+            <button class="btn @(userRating == "dislike" ? "btn-danger" : "btn-outline-danger") btn-sm"
+                    @onclick="ToggleDislike" title="Dislike">
+                👎 <span class="ms-1">@dislikeCount</span>
+            </button>
+            <div class="ms-auto">
+                <button class="btn @(isBookmarked ? "btn-warning" : "btn-outline-warning") btn-sm"
+                        @onclick="ToggleBookmark" title="Bookmark">
+                    @(isBookmarked ? "🔖" : "🏷️") Bookmark
+                </button>
             </div>
         </div>
+
+        <hr />
+
+        <CommentSection PostId="Id" />
     }
 }
 
@@ -68,42 +116,117 @@ else
     [Parameter] public Guid Id { get; set; }
 
     private PostDto? post;
-    private List<CommentDto>? comments;
-    private string newComment = "";
-    private string guestName = "";
-    private string guestEmail = "";
     private bool isAuthenticated;
-    private bool showGuestThankYou;
+    private bool isOwner;
+    private int likeCount;
+    private int dislikeCount;
+    private string? userRating;
+    private bool isBookmarked;
+    private bool isActionLoading;
+    private bool showDeleteConfirm;
+    private string? actionError;
+    private string? actionSuccess;
 
     protected override async Task OnInitializedAsync()
     {
         post = await Api.GetPostAsync(Id);
-        comments = await Api.GetCommentsAsync(Id);
         var user = await Api.GetCurrentUserAsync();
         isAuthenticated = user is not null;
+
+        if (user is not null && post is not null)
+        {
+            // Owner check: current user is author, admin, or root
+            isOwner = post.AuthorId.ToString() == user.UserId || user.IsRoot || user.Groups.Contains("Admin");
+        }
+
+        if (post is not null && post.IsPublished)
+        {
+            var rating = await Api.GetPostRatingAsync(Id);
+            if (rating is not null)
+            {
+                likeCount = rating.LikeCount;
+                dislikeCount = rating.DislikeCount;
+                userRating = rating.UserRating;
+            }
+
+            if (isAuthenticated)
+            {
+                var bm = await Api.GetBookmarkStatusAsync(Id);
+                isBookmarked = bm?.IsBookmarked ?? false;
+            }
+        }
     }
 
-    private async Task AddComment()
+    private async Task PublishPostAsync()
     {
-        if (string.IsNullOrWhiteSpace(newComment)) return;
-        await Api.AddCommentAsync(Id, newComment, guestName, guestEmail);
-        newComment = "";
+        if (post is null || isActionLoading) return;
+        isActionLoading = true;
+        actionError = null;
+        actionSuccess = null;
 
-        if (!isAuthenticated)
+        var updated = post with { IsPublished = true };
+        var result = await Api.UpdatePostAsync(Id, updated);
+        if (result is not null)
         {
-            showGuestThankYou = true;
+            actionSuccess = "Published! Refreshing...";
+            // Reload to show the published view
+            Navigation.NavigateTo($"/posts/{Id}", forceLoad: true);
         }
         else
         {
-            comments = await Api.GetCommentsAsync(Id);
+            actionError = "Failed to publish.";
+            isActionLoading = false;
         }
     }
 
-    private async Task HandleReplyAdded(object args)
+    private async Task DeleteDraftAsync()
     {
-        var (commentId, text, name, email) = ((Guid, string, string, string))args;
-        await Api.ReplyToCommentAsync(commentId, text, name, email);
-        comments = await Api.GetCommentsAsync(Id);
+        if (isActionLoading) return;
+        isActionLoading = true;
+        actionError = null;
+        showDeleteConfirm = false;
+
+        var success = await Api.DeletePostAsync(Id);
+        if (success)
+        {
+            Navigation.NavigateTo("/my/posts");
+        }
+        else
+        {
+            actionError = "Failed to delete.";
+            isActionLoading = false;
+        }
+    }
+
+    private async Task ToggleLike()
+    {
+        if (!isAuthenticated) return;
+        var result = await Api.LikePostAsync(Id);
+        if (result is not null)
+        {
+            likeCount = result.LikeCount;
+            dislikeCount = result.DislikeCount;
+            userRating = result.UserRating;
+        }
+    }
+
+    private async Task ToggleDislike()
+    {
+        if (!isAuthenticated) return;
+        var result = await Api.DislikePostAsync(Id);
+        if (result is not null)
+        {
+            likeCount = result.LikeCount;
+            dislikeCount = result.DislikeCount;
+            userRating = result.UserRating;
+        }
+    }
+
+    private async Task ToggleBookmark()
+    {
+        if (!isAuthenticated) return;
+        var result = await Api.ToggleBookmarkAsync(Id);
+        if (result is not null) isBookmarked = result.IsBookmarked;
     }
 
     private static string RenderMarkdown(string markdown)

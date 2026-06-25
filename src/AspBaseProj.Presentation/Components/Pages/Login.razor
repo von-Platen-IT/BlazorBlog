@@ -7,10 +7,12 @@
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-4">
         <h2>Login</h2>
+
         @if (!string.IsNullOrEmpty(error))
         {
             <div class="alert alert-danger">@error</div>
         }
+
         <form method="post" action="/api/auth/login" data-enhance="false">
             <AntiforgeryToken />
             <div class="mb-3">
@@ -21,7 +23,7 @@
                 <label class="form-label">Password</label>
                 <input type="password" name="password" class="form-control" required />
             </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
+            <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
         </form>
 
         <hr />

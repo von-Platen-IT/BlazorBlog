@@ -39,14 +39,14 @@ public class ApiClient
 
     public async Task<AuthResponse?> LoginAsync(string userName, string password)
     {
-        var response = await _http.PostAsJsonAsync("/api/auth/login", new { userName, password }, _jsonOptions);
+        var response = await _http.PostAsJsonAsync("/api/auth/login", new LoginRequest(userName, password), _jsonOptions);
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadFromJsonAsync<AuthResponse>(_jsonOptions);
     }
 
     public async Task<AuthResponse?> RegisterAsync(string userName, string? email, string password)
     {
-        var response = await _http.PostAsJsonAsync("/api/auth/register", new { userName, email, password }, _jsonOptions);
+        var response = await _http.PostAsJsonAsync("/api/auth/register", new RegisterRequest(userName, email, password), _jsonOptions);
         if (!response.IsSuccessStatusCode) return null;
         return await response.Content.ReadFromJsonAsync<AuthResponse>(_jsonOptions);
     }
@@ -193,11 +193,63 @@ public class ApiClient
         var response = await _http.PutAsJsonAsync($"/api/admin/settings/{key}", new { value }, _jsonOptions);
         return response.IsSuccessStatusCode;
     }
+
+    // My Posts
+    public async Task<MyPostsResponse?> GetMyPostsAsync(int page = 1, int pageSize = 10)
+    {
+        var response = await _http.GetAsync($"/api/posts/my?page={page}&pageSize={pageSize}");
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<MyPostsResponse>(_jsonOptions);
+    }
+
+    // Ratings
+    public async Task<RatingResponse?> LikePostAsync(Guid postId)
+    {
+        var response = await _http.PostAsync($"/api/posts/{postId}/like", null);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<RatingResponse>(_jsonOptions);
+    }
+
+    public async Task<RatingResponse?> DislikePostAsync(Guid postId)
+    {
+        var response = await _http.PostAsync($"/api/posts/{postId}/dislike", null);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<RatingResponse>(_jsonOptions);
+    }
+
+    public async Task<RatingResponse?> GetPostRatingAsync(Guid postId)
+    {
+        var response = await _http.GetAsync($"/api/posts/{postId}/rating");
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<RatingResponse>(_jsonOptions);
+    }
+
+    // Bookmarks
+    public async Task<BookmarkToggleResponse?> ToggleBookmarkAsync(Guid postId)
+    {
+        var response = await _http.PostAsync($"/api/posts/{postId}/bookmark", null);
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<BookmarkToggleResponse>(_jsonOptions);
+    }
+
+    public async Task<BookmarkStatusResponse?> GetBookmarkStatusAsync(Guid postId)
+    {
+        var response = await _http.GetAsync($"/api/posts/{postId}/bookmark");
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<BookmarkStatusResponse>(_jsonOptions);
+    }
+
+    public async Task<BookmarkedPostsResponse?> GetBookmarkedPostsAsync(int page = 1, int pageSize = 10)
+    {
+        var response = await _http.GetAsync($"/api/posts/bookmarks/list?page={page}&pageSize={pageSize}");
+        if (!response.IsSuccessStatusCode) return null;
+        return await response.Content.ReadFromJsonAsync<BookmarkedPostsResponse>(_jsonOptions);
+    }
 }
 
 // DTOs
 public record AuthUserInfo(string UserId, string UserName, string? Email, bool IsRoot, List<string> Groups);
-public record PostDto(Guid Id, string Title, string Content, Guid AuthorId, bool IsPublished, DateTime CreatedAt, DateTime? PublishedAt, AuthorDto? Author);
+public record PostDto(Guid Id, string Title, string Content, Guid AuthorId, bool IsPublished, DateTime CreatedAt, DateTime? PublishedAt, AuthorDto? Author, int LikeCount = 0, int DislikeCount = 0);
 public record AuthorDto(Guid Id, string UserName);
 public record PostListResponse(List<PostDto> Posts, int Total, int Page, int PageSize);
 public record CommentDto(Guid Id, string Content, Guid PostId, Guid? UserId, Guid? ParentCommentId, string? GuestName, bool IsApproved, DateTime CreatedAt, UserRefDto? User, List<CommentDto> Replies);
@@ -205,3 +257,10 @@ public record UserRefDto(Guid Id, string UserName);
 public record UserDto(Guid Id, string UserName, string? Email, bool IsRoot, DateTime CreatedAt, List<string> Groups);
 public record GroupDto(Guid Id, string Name, string? Description);
 public record SettingDto(string Key, string? Value, DateTime? UpdatedAt);
+public record MyPostDto(Guid Id, string Title, string Content, bool IsPublished, DateTime CreatedAt, DateTime? UpdatedAt, DateTime? PublishedAt, int CommentCount);
+public record MyPostsResponse(List<MyPostDto> Posts, int Total, int Page, int PageSize);
+public record RatingResponse(int LikeCount, int DislikeCount, string? UserRating);
+public record BookmarkToggleResponse(bool IsBookmarked);
+public record BookmarkStatusResponse(bool IsBookmarked);
+public record BookmarkedPostDto(Guid Id, string Title, string Content, string AuthorName, bool IsPublished, DateTime? PublishedAt, int LikeCount, int DislikeCount, int CommentCount);
+public record BookmarkedPostsResponse(List<BookmarkedPostDto> Posts, int Total, int Page, int PageSize);

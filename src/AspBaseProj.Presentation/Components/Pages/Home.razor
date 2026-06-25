@@ -33,7 +33,10 @@ else
                         <p class="card-text text-muted small">@Truncate(post.Content, 120)</p>
                     </div>
                     <div class="card-footer text-muted small bg-transparent">
-                        By @(post.Author?.UserName ?? "Unknown") on @post.PublishedAt?.ToString("d")
+                        <div>By @(post.Author?.UserName ?? "Unknown") on @post.PublishedAt?.ToString("d")</div>
+                        <div class="mt-1">
+                            👍 @post.LikeCount  👎 @post.DislikeCount
+                        </div>
                     </div>
                 </div>
             </div>

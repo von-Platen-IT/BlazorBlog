@@ -7,6 +7,7 @@ public interface ICommentRepository
     Task<Comment?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<List<Comment>> GetByPostIdAsync(Guid postId, CancellationToken ct = default);
     Task<List<Comment>> GetPendingAsync(CancellationToken ct = default);
+    Task<Dictionary<Guid, int>> GetCommentCountsByPostIdsAsync(List<Guid> postIds, CancellationToken ct = default);
     Task<Comment> AddAsync(Comment comment, CancellationToken ct = default);
     Task UpdateAsync(Comment comment, CancellationToken ct = default);
     Task DeleteAsync(Comment comment, CancellationToken ct = default);

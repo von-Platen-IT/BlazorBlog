@@ -29,7 +29,7 @@ builder.Services.AddScoped<HttpClient>(sp =>
 {
     var handler = sp.GetRequiredService<AspBaseProj.Presentation.Components.Shared.CookieForwardingHandler>();
     handler.InnerHandler = new HttpClientHandler();
-    var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5000") };
+    var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5113") };
     return client;
 });
 builder.Services.AddScoped<AspBaseProj.Presentation.Components.Shared.ApiClient>();
@@ -152,49 +152,82 @@ var authGroup = app.MapGroup("/api/auth");
 
 authGroup.MapPost("/register", async (HttpContext ctx, AuthService authService) =>
 {
-    var form = await ctx.Request.ReadFormAsync();
-    var userName = form["userName"].ToString();
-    var email = form["email"].ToString();
-    var password = form["password"].ToString();
+    string userName, email, password;
+
+    if (ctx.Request.HasJsonContentType())
+    {
+        var body = await ctx.Request.ReadFromJsonAsync<RegisterRequest>();
+        if (body is null) return Results.BadRequest(new { error = "Invalid request body." });
+        userName = body.UserName;
+        email = body.Email ?? "";
+        password = body.Password;
+    }
+    else
+    {
+        var form = await ctx.Request.ReadFormAsync();
+        userName = form["userName"].ToString();
+        email = form["email"].ToString();
+        password = form["password"].ToString();
+    }
 
     try
     {
         var response = await authService.RegisterAsync(new RegisterRequest(userName, string.IsNullOrEmpty(email) ? null : email, password));
         await SignInWithCookie(ctx, response);
-        ctx.Response.Redirect("/");
+        return ctx.Request.HasJsonContentType() ? Results.Ok(response) : Results.Redirect("/");
     }
     catch (InvalidOperationException ex)
     {
-        ctx.Response.Redirect($"/register?error={Uri.EscapeDataString(ex.Message)}");
+        return ctx.Request.HasJsonContentType()
+            ? Results.BadRequest(new { error = ex.Message })
+            : Results.Redirect($"/register?error={Uri.EscapeDataString(ex.Message)}");
     }
 }).DisableAntiforgery();
 
 authGroup.MapPost("/login", async (HttpContext ctx, AuthService authService) =>
 {
-    var form = await ctx.Request.ReadFormAsync();
-    var userName = form["userName"].ToString();
-    var password = form["password"].ToString();
+    string userName, password;
+
+    if (ctx.Request.HasJsonContentType())
+    {
+        var body = await ctx.Request.ReadFromJsonAsync<LoginRequest>();
+        if (body is null) return Results.BadRequest(new { error = "Invalid request body." });
+        userName = body.UserName;
+        password = body.Password;
+    }
+    else
+    {
+        var form = await ctx.Request.ReadFormAsync();
+        userName = form["userName"].ToString();
+        password = form["password"].ToString();
+    }
 
     try
     {
         var response = await authService.LoginAsync(new LoginRequest(userName, password));
         await SignInWithCookie(ctx, response);
-        ctx.Response.Redirect("/");
+        return ctx.Request.HasJsonContentType() ? Results.Ok(response) : Results.Redirect("/");
     }
     catch (UnauthorizedAccessException)
     {
-        ctx.Response.Redirect("/login?error=Invalid%20credentials");
+        return ctx.Request.HasJsonContentType()
+            ? Results.Unauthorized()
+            : Results.Redirect("/login?error=Invalid%20credentials");
     }
     catch (InvalidOperationException)
     {
-        ctx.Response.Redirect("/login?error=Login%20failed");
+        return ctx.Request.HasJsonContentType()
+            ? Results.Unauthorized()
+            : Results.Redirect("/login?error=Login%20failed");
     }
 }).DisableAntiforgery();
 
 authGroup.MapPost("/logout", async (HttpContext ctx) =>
 {
     await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    ctx.Response.Redirect("/");
+    return ctx.Request.HasJsonContentType()
+        ? Results.Ok(new { message = "Logged out" })
+        : Results.Redirect("/");
 }).DisableAntiforgery();
 
 authGroup.MapGet("/me", (HttpContext ctx) =>
@@ -240,16 +273,60 @@ authGroup.MapGet("/callback/{provider}", async (string provider, HttpContext ctx
 // ============================================================
 var postsGroup = app.MapGroup("/api/posts");
 
-postsGroup.MapGet("/", async (IPostRepository repo, int page = 1, int pageSize = 10) =>
+postsGroup.MapGet("/", async (IPostRepository repo, IPostRatingRepository ratingRepo, int page = 1, int pageSize = 10) =>
 {
     var (posts, total) = await repo.GetPublishedAsync(page, pageSize);
-    return Results.Ok(new { posts = posts.Select(MapPost), total, page, pageSize });
+    var postIds = posts.Select(p => p.Id).ToList();
+    var ratingCounts = await ratingRepo.GetCountsByPostIdsAsync(postIds);
+    var dtos = posts.Select(p =>
+    {
+        var (likeCount, dislikeCount) = ratingCounts.TryGetValue(p.Id, out var rc) ? rc : (0, 0);
+        return new
+        {
+            p.Id, p.Title, p.Content, p.AuthorId, p.IsPublished, p.CreatedAt, p.UpdatedAt, p.PublishedAt,
+            Author = p.Author is not null ? new { p.Author.Id, p.Author.UserName } : null,
+            LikeCount = likeCount,
+            DislikeCount = dislikeCount
+        };
+    });
+    return Results.Ok(new { posts = dtos, total, page, pageSize });
 });
 
-postsGroup.MapGet("/{id:guid}", async (Guid id, IPostRepository repo) =>
+postsGroup.MapGet("/my", async (IPostRepository postRepo, ICommentRepository commentRepo, CurrentUserService user, int page = 1, int pageSize = 10) =>
+{
+    if (!user.IsAuthenticated) return Results.Unauthorized();
+
+    var (posts, total) = await postRepo.GetByAuthorIdPaginatedAsync(user.UserId!.Value, page, pageSize);
+
+    // Batch-load comment counts
+    var postIds = posts.Select(p => p.Id).ToList();
+    var commentCounts = await commentRepo.GetCommentCountsByPostIdsAsync(postIds);
+
+    // Map to DTOs with comment info
+    var dtos = posts.Select(p => new
+    {
+        p.Id,
+        p.Title,
+        Content = p.Content.Length > 200 ? p.Content[..200] + "..." : p.Content,
+        p.IsPublished,
+        p.CreatedAt,
+        p.UpdatedAt,
+        p.PublishedAt,
+        CommentCount = commentCounts.TryGetValue(p.Id, out var count) ? count : 0
+    });
+
+    return Results.Ok(new { posts = dtos, total, page, pageSize });
+}).RequireAuthorization("AuthorOrAdminOrRootPolicy");
+
+postsGroup.MapGet("/{id:guid}", async (Guid id, IPostRepository repo, CurrentUserService user) =>
 {
     var post = await repo.GetByIdAsync(id);
-    return post is not null && post.IsPublished ? Results.Ok(MapPost(post)) : Results.NotFound();
+    if (post is null) return Results.NotFound();
+    // Allow access if published, or if the current user is the author, admin, or root
+    if (post.IsPublished) return Results.Ok(MapPost(post));
+    if (user.IsAuthenticated && (post.AuthorId == user.UserId || user.IsRoot || user.IsInGroup("Admin")))
+        return Results.Ok(MapPost(post));
+    return Results.NotFound();
 });
 
 postsGroup.MapPost("/", async (Post post, IPostRepository repo, CurrentUserService user) =>
@@ -289,6 +366,146 @@ postsGroup.MapDelete("/{id:guid}", async (Guid id, IPostRepository repo, Current
     await repo.DeleteAsync(post);
     return Results.NoContent();
 }).RequireAuthorization("AuthorOrAdminOrRootPolicy");
+
+// ============================================================
+// RATING ENDPOINTS
+// ============================================================
+postsGroup.MapPost("/{id:guid}/like", async (Guid id, IPostRatingRepository ratingRepo, IPostRepository postRepo, CurrentUserService user) =>
+{
+    if (!user.IsAuthenticated) return Results.Unauthorized();
+    var post = await postRepo.GetByIdAsync(id);
+    if (post is null) return Results.NotFound();
+
+    var existing = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
+    if (existing is not null && existing.IsLike)
+    {
+        await ratingRepo.DeleteAsync(existing);
+    }
+    else if (existing is not null)
+    {
+        existing.IsLike = true;
+        await ratingRepo.UpdateAsync(existing);
+    }
+    else
+    {
+        await ratingRepo.AddAsync(new PostRating
+        {
+            Id = Guid.NewGuid(),
+            PostId = id,
+            UserId = user.UserId!.Value,
+            IsLike = true,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    var (likeCount, dislikeCount) = await ratingRepo.GetCountsAsync(id);
+    var userRating = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
+    return Results.Ok(new { likeCount, dislikeCount, userRating = userRating is not null ? (userRating.IsLike ? "like" : "dislike") : (string?)null });
+}).RequireAuthorization();
+
+postsGroup.MapPost("/{id:guid}/dislike", async (Guid id, IPostRatingRepository ratingRepo, IPostRepository postRepo, CurrentUserService user) =>
+{
+    if (!user.IsAuthenticated) return Results.Unauthorized();
+    var post = await postRepo.GetByIdAsync(id);
+    if (post is null) return Results.NotFound();
+
+    var existing = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
+    if (existing is not null && !existing.IsLike)
+    {
+        await ratingRepo.DeleteAsync(existing);
+    }
+    else if (existing is not null)
+    {
+        existing.IsLike = false;
+        await ratingRepo.UpdateAsync(existing);
+    }
+    else
+    {
+        await ratingRepo.AddAsync(new PostRating
+        {
+            Id = Guid.NewGuid(),
+            PostId = id,
+            UserId = user.UserId!.Value,
+            IsLike = false,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+
+    var (likeCount, dislikeCount) = await ratingRepo.GetCountsAsync(id);
+    var userRating = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
+    return Results.Ok(new { likeCount, dislikeCount, userRating = userRating is not null ? (userRating.IsLike ? "like" : "dislike") : (string?)null });
+}).RequireAuthorization();
+
+postsGroup.MapGet("/{id:guid}/rating", async (Guid id, IPostRatingRepository ratingRepo, CurrentUserService user) =>
+{
+    var (likeCount, dislikeCount) = await ratingRepo.GetCountsAsync(id);
+    string? userRating = null;
+    if (user.IsAuthenticated)
+    {
+        var existing = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
+        userRating = existing is not null ? (existing.IsLike ? "like" : "dislike") : null;
+    }
+    return Results.Ok(new { likeCount, dislikeCount, userRating });
+});
+
+// ============================================================
+// BOOKMARK ENDPOINTS
+// ============================================================
+postsGroup.MapPost("/{id:guid}/bookmark", async (Guid id, IBookmarkRepository bookmarkRepo, IPostRepository postRepo, CurrentUserService user) =>
+{
+    if (!user.IsAuthenticated) return Results.Unauthorized();
+    var post = await postRepo.GetByIdAsync(id);
+    if (post is null) return Results.NotFound();
+
+    var existing = await bookmarkRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
+    if (existing is not null)
+    {
+        await bookmarkRepo.DeleteAsync(existing);
+        return Results.Ok(new { isBookmarked = false });
+    }
+
+    await bookmarkRepo.AddAsync(new Bookmark
+    {
+        Id = Guid.NewGuid(),
+        PostId = id,
+        UserId = user.UserId!.Value,
+        CreatedAt = DateTime.UtcNow
+    });
+    return Results.Ok(new { isBookmarked = true });
+}).RequireAuthorization();
+
+postsGroup.MapGet("/{id:guid}/bookmark", async (Guid id, IBookmarkRepository bookmarkRepo, CurrentUserService user) =>
+{
+    if (!user.IsAuthenticated) return Results.Ok(new { isBookmarked = false });
+    var existing = await bookmarkRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
+    return Results.Ok(new { isBookmarked = existing is not null });
+}).RequireAuthorization();
+
+postsGroup.MapGet("/bookmarks/list", async (IBookmarkRepository bookmarkRepo, IPostRatingRepository ratingRepo, ICommentRepository commentRepo, CurrentUserService user, int page = 1, int pageSize = 10) =>
+{
+    if (!user.IsAuthenticated) return Results.Unauthorized();
+
+    var (posts, total) = await bookmarkRepo.GetBookmarkedPostsAsync(user.UserId!.Value, page, pageSize);
+
+    var postIds = posts.Select(p => p.Id).ToList();
+    var ratingCounts = await ratingRepo.GetCountsByPostIdsAsync(postIds);
+    var commentCounts = await commentRepo.GetCommentCountsByPostIdsAsync(postIds);
+
+    var dtos = posts.Select(p => new
+    {
+        p.Id,
+        p.Title,
+        Content = p.Content.Length > 200 ? p.Content[..200] + "..." : p.Content,
+        AuthorName = p.Author.UserName,
+        p.IsPublished,
+        p.PublishedAt,
+        LikeCount = ratingCounts.TryGetValue(p.Id, out var rc) ? rc.LikeCount : 0,
+        DislikeCount = ratingCounts.TryGetValue(p.Id, out rc) ? rc.DislikeCount : 0,
+        CommentCount = commentCounts.TryGetValue(p.Id, out var cc) ? cc : 0
+    });
+
+    return Results.Ok(new { posts = dtos, total, page, pageSize });
+}).RequireAuthorization();
 
 // ============================================================
 // MEDIA ENDPOINTS
@@ -581,7 +798,9 @@ static async Task SignInWithCookie(HttpContext ctx, AuthResponse response)
 static object MapPost(Post p) => new
 {
     p.Id, p.Title, p.Content, p.AuthorId, p.IsPublished, p.CreatedAt, p.UpdatedAt, p.PublishedAt,
-    Author = p.Author is not null ? new { p.Author.Id, p.Author.UserName } : null
+    Author = p.Author is not null ? new { p.Author.Id, p.Author.UserName } : null,
+    LikeCount = 0,
+    DislikeCount = 0
 };
 
 static object MapComment(Comment c) => new

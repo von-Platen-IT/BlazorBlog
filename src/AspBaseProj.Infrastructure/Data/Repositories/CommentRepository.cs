@@ -37,4 +37,15 @@ public class CommentRepository(BlogDbContext db) : ICommentRepository
         db.Comments.Remove(comment);
         await db.SaveChangesAsync(ct);
     }
+
+    public async Task<Dictionary<Guid, int>> GetCommentCountsByPostIdsAsync(List<Guid> postIds, CancellationToken ct = default)
+    {
+        if (postIds.Count == 0) return new Dictionary<Guid, int>();
+
+        return await db.Comments
+            .Where(c => postIds.Contains(c.PostId) && c.IsApproved)
+            .GroupBy(c => c.PostId)
+            .Select(g => new { PostId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.PostId, x => x.Count, ct);
+    }
 }

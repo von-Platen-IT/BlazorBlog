@@ -1,85 +1,102 @@
-# Einfacher Blog – Funktionsbeschreibung (Soll-Konzept)
+# BlazorBlog — Funktionsbeschreibung (Soll-Konzept)
 
-Bei diesem Projekt handelt es sich um eine ASP.NET Core Webanwendung auf Basis von .NET 10.  
-Die Anwendung bietet eine mehrbenutzerfähige Blog-Plattform mit rollenbasierter Zugriffssteuerung, einem komfortablen MD-Editor für Autoren, verschachtelten Kommentaren und einem responsiven Design.  
+Bei diesem Projekt handelt es sich um eine ASP.NET Core Webanwendung auf Basis von .NET 10 mit **Blazor Interactive Server**.
+Die Anwendung bietet eine mehrbenutzerfähige Blog-Plattform mit rollenbasierter Zugriffssteuerung, einem komfortablen Markdown-Editor für Autoren, verschachtelten Kommentaren mit visuellen Tree-Lines und einem responsiven Design.
 Die Datenhaltung erfolgt über eine PostgreSQL-Datenbank, die in einem Docker-Container betrieben wird.
 
-## Features (Soll-Beschreibung)
+**Architektur-Philosophie:** Die Applikation ist als **SPA (Single Page Application)** konzipiert, die sich wie eine **Desktop-Anwendung anfühlt** — auch im Browser. Sämtliche Interaktionen (Kommentare, Bewertungen, Bookmarks, Navigation) erfolgen **ohne Full-Page-Roundtrips** über Blazor Interactive Server mit SignalR. Es wird durchgängig modernste Razor-Technologie verwendet (`@rendermode InteractiveServer`, `StreamRendering`, `@onclick` mit `async`/`await`).
+
+---
+
+## Features
 
 ### Benutzerverwaltung und Rollen
-- Registrierung und Anmeldung von Benutzern.
+- Registrierung und Anmeldung von Benutzern (lokal + OAuth: Google, GitHub, Microsoft).
 - Vordefinierte Benutzergruppen: **Author**, **Admin**, **Viewer**, **Public**.
 - Der Benutzer **root** besitzt uneingeschränkte Rechte: Er kann sämtliche Inhalte (Beiträge, Kommentare) bearbeiten und löschen, die Gruppenzugehörigkeit anderer Benutzer verwalten sowie sämtliche administrativen Aufgaben ausführen. Er ist keiner Gruppe zugeordnet.
 
 ### Blog-Beiträge (Posts)
-- Angemeldete Benutzer der Gruppe **Author** können neue Blog-Beiträge verfassen und editieren sowie formattieren.
+- Angemeldete Benutzer der Gruppe **Author** können neue Blog-Beiträge verfassen, als Draft speichern und später veröffentlichen.
+- Autoren haben eine **"My Posts"-Übersicht** (`/my/posts`) mit allen eigenen Beiträgen (Drafts + Published), Kommentar-Zählern und Quick-Publish-Funktion.
 - Autoren dürfen ihre eigenen Beiträge nachträglich bearbeiten und löschen.
-- Beiträge werden in einer Übersicht dargestellt (z. B. chronologisch) und können von allen Besuchern gelesen werden.
-- Das Hochladen von Grafiken in die Dokumente ist möglich. Diese werden in der DB gespeichert
-- Berücksichtigung finden andere soziale Medien und Videoplatformen auf die in den Beiträgen optisch ansprechend verlinkt werden kann.
+- Beiträge werden in einer Übersicht chronologisch dargestellt und können von allen Besuchern gelesen werden.
+- Das Hochladen von Bildern ist möglich; diese werden als `byte[]` in der Datenbank gespeichert.
+- Soziale Medien und Videoplattformen können optisch ansprechend in Beiträge eingebunden werden.
 
-### Kommentarsystem
-- Angemeldete Benutzer (aller Gruppen) können Beiträge direkt kommentieren.
-- Kommentare lassen sich wiederum kommentieren (verschachtelte Diskussionen).
-- Nicht angemeldete Besucher können ebenfalls Kommentare verfassen; diese werden jedoch erst nach manueller Freischaltung durch einen Administrator oder root öffentlich sichtbar.
+### Bewertungssystem (Like/Dislike)
+- Authentifizierte Benutzer können Beiträge mit 👍 (Like) oder 👎 (Dislike) bewerten.
+- **Toggle-Logik:** Erneutes Klicken entfernt die Bewertung; Like und Dislike schließen sich gegenseitig aus.
+- **Ein Vote pro Benutzer pro Beitrag** (Unique-Constraint auf `PostId + UserId`).
+- Alle Besucher sehen die Gesamtanzahl der Likes und Dislikes auf der Home-Seite und in der Post-Detail-Ansicht.
+
+### Bookmark-System
+- Authentifizierte Benutzer können Beiträge mit einem 🔖-Button bookmarken (Toggle).
+- **Ein Bookmark pro Benutzer pro Beitrag** (Unique-Constraint auf `PostId + UserId`).
+- Gespeicherte Beiträge sind im **"My Posts"-Bereich** unter dem **"🔖 Bookmarks"-Tab** abrufbar — mit Autor, Like/Dislike/Comment-Zählern.
+
+### Kommentarsystem (Modul mit Tree-Lines)
+- **Eigenständiges Modul** (`CommentSection` + `CommentNode`), gekapselt und ohne Event-Bubbling.
+- Angemeldete Benutzer können Beiträge direkt kommentieren — der Kommentar **erscheint sofort** (optimistic insert, kein Reload).
+- Kommentare lassen sich wiederum kommentieren (verschachtelte Diskussionen) — Replies **erscheinen sofort**.
+- **Visuelle Hierarchie:** Neben der Einrückung werden **graue Verbindungslinien** (Tree-Lines) zwischen Parent und Reply angezeigt.
+- Nicht angemeldete Besucher können ebenfalls kommentieren; ihr Kommentar erscheint sofort mit einem ⏳ **"Pending Approval"**-Badge und wird nach Freischaltung öffentlich sichtbar.
+- **Kein Round-Trip:** Kommentar-Operationen nutzen die API-Antwort direkt für optimistische UI-Updates — kein vollständiger Neu-Load des Kommentar-Baums.
 
 ### Moderation und Freischaltung
 - Administratoren und root erhalten eine Übersicht über alle noch nicht freigegebenen Gästekommentare und können diese einzeln oder gesammelt freischalten oder verwerfen.
-- Gemeldete oder unangemessene Inhalte können von Administratoren/root entfernt werden.
 
 ### Responsives Design
-- Die gesamte Benutzeroberfläche passt sich automatisch an verschiedene Geräteklassen an (Desktop-Browser, Tablet, Smartphone), sodass alle Funktionen auf jedem Endgerät gleichermaßen bedienbar sind. Es wird eine SPA entwickelt die ohne round-trips auskommt.
+- Die gesamte Benutzeroberfläche passt sich automatisch an Desktop, Tablet und Smartphone an.
+- Alle Funktionen sind auf jedem Gerät gleichermaßen bedienbar.
+- Die SPA verwendet client-seitiges Routing ohne Full-Page-Reloads.
 
 ### Administrationsbereich 
-- Alle Benter in der Gruppe **Admin** haben die Möglichkeit zu Administrieren.
-- Sie haben nur die Rechte bezogen auf Beiträge. Das System wird ausschließlich von **root** verwaltet.
-- Verwaltung von Benutzern und deren Gruppenzugehörigkeit.
+- Benutzer in der Gruppe **Admin** können Beiträge und Kommentare moderieren.
+- Das System wird ausschließlich von **root** verwaltet (Benutzer, Gruppen, Systemeinstellungen).
 - Vollständige Kontrolle über sämtliche Inhalte: Beiträge und Kommentare beliebiger Autoren editieren oder löschen.
-- Option zur Konfiguration grundlegender Systemeinstellungen (z. B. Blog-Titel, Freigabeprozesse).
+- Option zur Konfiguration grundlegender Systemeinstellungen (Blog-Titel, Freigabeprozesse).
 
 ### Web API
-- Funktion des UI die in den Gruppen Author und Viewer über den Browser angeboten werden stehen auch über eine API zur Verfügung
-- Für die Verwendung der API werden zeitgemäße Sicherheitsmechanismen verwendet.
-- die API Schnittstelle wird für den Einsatz von Swagger vorbereitet.
+- Alle UI-Funktionen stehen auch über eine REST-API zur Verfügung.
+- Zeitgemäße Sicherheitsmechanismen (JWT + Cookie-Authentication).
+- Swagger/OpenAPI-Dokumentation unter `/swagger`.
 
 ---
 
 ## Feature-Liste für die Konfiguration eines AI-Agenten
 
 1. **Mehrbenutzer-Blog mit Rollen**  
-   - Gruppen: Author, Admin, Viewer.  
+   - Gruppen: Author, Admin, Viewer, Public.  
    - root-Konto mit Superuser-Rechten.
 
 2. **Beitragserstellung und -bearbeitung**  
-   - Rich-Text-Editor mit grundsätzlichen Textlayout Funktionen für Autoren.  
+   - Markdown-Editor für Autoren.  
    - CRUD-Operationen nur für eigene Beiträge (Author) bzw. alles (Admin/root).
+   - Draft/Publish-Workflow mit "My Posts"-Dashboard.
 
-3. **Kommentarsystem**  
-   - Authentifizierte Benutzer: sofort sichtbare Kommentare.  
-   - Gäste: moderierte Kommentare (Freischaltung erforderlich).  
-   - Verschachtelte Kommentare (Antworten auf Kommentare).
+3. **Kommentarsystem (Modul)**  
+   - Authentifizierte Benutzer: sofort sichtbare Kommentare (optimistic insert).  
+   - Gäste: moderierte Kommentare mit sofortigem "Pending Approval"-Badge.  
+   - Verschachtelte Kommentare mit visuellen Tree-Lines.
+   - Kein Round-Trip: API-Antwort wird direkt in den lokalen State eingefügt.
 
-4. **Moderations-Workflow**  
+4. **Bewertungs- & Bookmark-System**
+   - Like/Dislike mit Toggle-Logik und Unique-Constraint.
+   - Bookmarks mit Toggle und "Bookmarks"-Tab in My Posts.
+
+5. **Moderations-Workflow**  
    - Liste ausstehender Gästekommentare.  
    - Massen- und Einzelfreischaltung durch Admin/root.
 
-5. **Responsive Oberfläche**  
+6. **Responsive Oberfläche**  
    - Optimiert für Desktop, Tablet und Mobilgeräte.
+   - SPA ohne Full-Page-Roundtrips (Blazor Interactive Server + SignalR).
 
-6. **Datenbank-Backend**  
-   - PostgreSQL, bereitgestellt in einem Docker-Container auf dem lokalen host.
-   - initial config: 
-   sudo docker run --name aspbaseporj_db \
-  -e POSTGRES_USER=admin \
-  -e POSTGRES_PASSWORD=gandalf123! \
-  -e POSTGRES_DB=deine_datenbank \
-  --network host \
-  -v postgres_abp_data:/var/lib/postgresql/data \
-  --restart unless-stopped \
-  -d postgres:17
+7. **Datenbank-Backend**  
+   - PostgreSQL, bereitgestellt in einem Docker-Container.
+   - Auto-Migration beim ersten Start.
 
-
-7. **Benutzer- und Rechteverwaltung**  
+8. **Benutzer- und Rechteverwaltung**  
    - root kann Gruppen ändern und alle Inhalte global bearbeiten/löschen.
 
 ---
@@ -94,15 +111,6 @@ Die Datenhaltung erfolgt über eine PostgreSQL-Datenbank, die in einem Docker-Co
 
 ### 1. Start PostgreSQL
 
-The database runs in a Docker container using the `postgres:17` image. The
-command below uses line continuations (`\`) so each option is readable and
-reviewable. The named volume `postgres_abp_data` persists data across container
-restarts, and `--restart unless-stopped` ensures the container survives host
-reboots.
-
-**Note:** The container maps host port `5433` to container port `5432` to avoid
-conflicts if port `5432` is already in use on your host.
-
 ```bash
 docker run \
   --name aspbaseporj_db \
@@ -115,21 +123,7 @@ docker run \
   -d postgres:17
 ```
 
-> **Security note:** The credentials above are development defaults that also
-> appear in [`appsettings.json`](src/AspBaseProj.Presentation/appsettings.json:3).
-> For any non-local deployment, override them via environment variables or
-> [user secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets)
-> (e.g. `ConnectionStrings__DefaultConnection`) instead of editing the file.
-
-Verify the container is healthy before launching the app:
-
-```bash
-docker ps --filter name=aspbaseporj_db
-docker logs aspbaseporj_db
-```
-
-If the container already exists from a previous run, start it with
-`docker start aspbaseporj_db` instead of `docker run`.
+> **Security note:** The credentials above are development defaults. For any non-local deployment, override them via environment variables or user secrets.
 
 ### 2. Run the app
 
@@ -137,16 +131,11 @@ If the container already exists from a previous run, start it with
 dotnet run --project src/AspBaseProj.Presentation
 ```
 
-The application listens on the default ASP.NET Core URLs (usually
-`http://localhost:5000`). Use `--urls` to override, e.g.
-`dotnet run --project src/AspBaseProj.Presentation --urls http://localhost:8080`.
+The application listens on `http://localhost:5113`.
 
 ### 3. First launch
 
-On first launch the application **auto-migrates** the database and **seeds** the
-root superuser account. The seeded credentials are configured in
-[`appsettings.json`](src/AspBaseProj.Presentation/appsettings.json:11) under the
-`Blog` section:
+On first launch the application **auto-migrates** the database and **seeds** the root superuser account:
 
 | Field        | Value          |
 |--------------|----------------|

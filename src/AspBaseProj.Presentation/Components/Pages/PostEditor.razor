@@ -80,7 +80,13 @@
         else
         {
             var result = await Api.CreatePostAsync(dto);
-            if (result is not null) Navigation.NavigateTo($"/posts/{result.Id}");
+            if (result is not null)
+            {
+                if (result.IsPublished)
+                    Navigation.NavigateTo($"/posts/{result.Id}");
+                else
+                    Navigation.NavigateTo("/my/posts");
+            }
             else error = "Failed to create post.";
         }
         isLoading = false;
