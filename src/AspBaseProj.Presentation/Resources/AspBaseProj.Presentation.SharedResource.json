@@ -10,7 +10,6 @@
   "Common_No": "No",
   "Common_Unknown": "Unknown",
   "Common_Guest": "Guest",
-
   "Nav_Brand": "BlazorBlog",
   "Nav_Home": "Home",
   "Nav_MyPosts": "My Posts",
@@ -28,12 +27,10 @@
   "Footer_Navigation": "Navigation",
   "Footer_Account": "Account",
   "Footer_Copyright": "© 2026 BlazorBlog — Powered by ASP.NET Core and BootstrapBlazor",
-
-  "Home_Title": "📝 Latest Posts",
+  "Home_Title": "Latest Posts",
   "Home_NoPosts": "No posts yet.",
   "Home_WriteFirstPost": "Write the first post",
   "PostList_By": "By",
-
   "PostDetail_Draft": "📝 Draft",
   "PostDetail_Created": "Created",
   "PostDetail_PublishNow": "✅ Publish Now",
@@ -50,7 +47,6 @@
   "PostDetail_LoginToRate": "Login to rate",
   "PostDetail_Bookmark": "Bookmark",
   "PostDetail_Bookmarked": "Bookmarked",
-
   "Comments_Title": "💬 Comments",
   "Comments_AddTitle": "Add a Comment",
   "Comments_PlaceholderName": "Your Name",
@@ -71,7 +67,6 @@
   "Comments_RepliesClosed": "Replies are closed for this thread",
   "Comments_Anonymous": "Anonymous",
   "Comments_FailedReply": "Failed to post reply. Please try again.",
-
   "Login_Title": "Login",
   "Login_Username": "Username",
   "Login_Password": "Password",
@@ -81,7 +76,6 @@
   "Login_NoAccount": "Don't have an account?",
   "Login_RegisterLink": "Register",
   "Login_InvalidCredentials": "Invalid credentials.",
-
   "Register_Title": "Register",
   "Register_Username": "Username",
   "Register_EmailOptional": "Email (optional)",
@@ -92,7 +86,6 @@
   "Register_HaveAccount": "Already have an account?",
   "Register_LoginLink": "Login",
   "Register_Failed": "Registration failed. The username may already be taken.",
-
   "Editor_NewPost": "✏️ New Post",
   "Editor_EditPost": "✏️ Edit Post",
   "Editor_Title": "Title",
@@ -106,7 +99,6 @@
   "Editor_FailedCreate": "Failed to create post.",
   "Editor_FailedUpdate": "Failed to update post.",
   "Editor_FailedDelete": "Failed to delete post.",
-
   "Images_Title": "🖼️ Images",
   "Images_Upload": "Upload Image",
   "Images_Uploading": "Uploading...",
@@ -115,19 +107,17 @@
   "Images_None": "No images uploaded yet.",
   "Images_CopyMarkdown": "📋 Copy Markdown",
   "Images_FailedUpload": "Failed to upload image.",
-
   "Social_Open": "Open",
   "Social_YouTube": "YouTube Video",
   "Social_Vimeo": "Vimeo Video",
   "Social_Twitter": "X / Twitter Post",
   "Social_ExternalLink": "External Link",
-
-  "MyPosts_Title": "📋 My Posts",
+  "MyPosts_Title": "My Posts",
   "MyPosts_All": "All",
-  "MyPosts_Published": "✅ Published",
-  "MyPosts_Drafts": "📝 Drafts",
-  "MyPosts_Bookmarks": "🔖 Bookmarks",
-  "MyPosts_NewPost": "✏️ New Post",
+  "MyPosts_Published": "Published",
+  "MyPosts_Drafts": "Drafts",
+  "MyPosts_Bookmarks": "Bookmarks",
+  "MyPosts_NewPost": "New Post",
   "MyPosts_NoDrafts": "No drafts.",
   "MyPosts_NoPublished": "No published posts.",
   "MyPosts_NoPosts": "No posts yet.",
@@ -152,8 +142,7 @@
   "MyPosts_TooltipEdit": "Edit",
   "MyPosts_TooltipPublish": "Publish",
   "MyPosts_TooltipDelete": "Delete",
-
-  "Mod_Title": "✅ Moderation Queue",
+  "Mod_Title": "Moderation Queue",
   "Mod_NoPending": "No pending comments.",
   "Mod_AllReviewed": "All comments have been reviewed.",
   "Mod_ApproveSelected": "✅ Approve Selected ({0})",
@@ -168,8 +157,7 @@
   "Mod_Rejected": "Comment rejected.",
   "Mod_BulkApproved": "Approved {0} comment(s).",
   "Mod_BulkRejected": "Rejected {0} comment(s).",
-
-  "Users_Title": "👥 User Management",
+  "Users_Title": "User Management",
   "Users_BulkActions": "Bulk Actions:",
   "Users_Selected": "{0} user(s) selected",
   "Users_AssignGroup": "+ Assign Group",
@@ -187,23 +175,19 @@
   "Users_BulkGroupAssigned": "Group assigned to selected users.",
   "Users_BulkGroupRemoved": "Group removed from selected users.",
   "Users_BulkDeleted": "Selected users deleted.",
-
-  "Settings_Title": "⚙️ System Settings",
+  "Settings_Title": "System Settings",
   "Settings_Save": "💾 Save",
   "Settings_Saved": "Setting \"{0}\" saved.",
-
-  "Profile_Title": "👤 Profile",
+  "Profile_Title": "Profile",
   "Profile_Username": "Username",
   "Profile_Email": "Email",
   "Profile_EmailNotSet": "Not set",
   "Profile_Groups": "Groups",
   "Profile_NoGroups": "None (Root has unrestricted access)",
   "Profile_RootBadge": "Root",
-
   "DeleteModal_Delete": "Delete",
   "DeleteModal_Deleting": "Deleting...",
   "DeleteModal_Warning": "This action cannot be undone.",
-
   "Lang_English": "English",
   "Lang_German": "Deutsch"
 }

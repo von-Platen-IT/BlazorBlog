@@ -67,7 +67,7 @@
   <data name="Footer_Copyright" xml:space="preserve"><value>© 2026 BlazorBlog — Powered by ASP.NET Core and BootstrapBlazor</value></data>
 
   <!-- Home / Post List -->
-  <data name="Home_Title" xml:space="preserve"><value>📝 Latest Posts</value></data>
+  <data name="Home_Title" xml:space="preserve"><value>Latest Posts</value></data>
   <data name="Home_NoPosts" xml:space="preserve"><value>No posts yet.</value></data>
   <data name="Home_WriteFirstPost" xml:space="preserve"><value>Write the first post</value></data>
   <data name="PostList_By" xml:space="preserve"><value>By</value></data>
@@ -136,7 +136,7 @@
   <data name="Register_Failed" xml:space="preserve"><value>Registration failed. The username may already be taken.</value></data>
 
   <!-- Post Editor -->
-  <data name="Editor_NewPost" xml:space="preserve"><value>✏️ New Post</value></data>
+  <data name="Editor_NewPost" xml:space="preserve"><value>New Post</value></data>
   <data name="Editor_EditPost" xml:space="preserve"><value>✏️ Edit Post</value></data>
   <data name="Editor_Title" xml:space="preserve"><value>Title</value></data>
   <data name="Editor_TitlePlaceholder" xml:space="preserve"><value>Enter post title...</value></data>
@@ -168,12 +168,12 @@
   <data name="Social_ExternalLink" xml:space="preserve"><value>External Link</value></data>
 
   <!-- My Posts -->
-  <data name="MyPosts_Title" xml:space="preserve"><value>📋 My Posts</value></data>
+  <data name="MyPosts_Title" xml:space="preserve"><value>My Posts</value></data>
   <data name="MyPosts_All" xml:space="preserve"><value>All</value></data>
-  <data name="MyPosts_Published" xml:space="preserve"><value>✅ Published</value></data>
-  <data name="MyPosts_Drafts" xml:space="preserve"><value>📝 Drafts</value></data>
-  <data name="MyPosts_Bookmarks" xml:space="preserve"><value>🔖 Bookmarks</value></data>
-  <data name="MyPosts_NewPost" xml:space="preserve"><value>✏️ New Post</value></data>
+  <data name="MyPosts_Published" xml:space="preserve"><value>Published</value></data>
+  <data name="MyPosts_Drafts" xml:space="preserve"><value>Drafts</value></data>
+  <data name="MyPosts_Bookmarks" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="MyPosts_NewPost" xml:space="preserve"><value>New Post</value></data>
   <data name="MyPosts_NoDrafts" xml:space="preserve"><value>No drafts.</value></data>
   <data name="MyPosts_NoPublished" xml:space="preserve"><value>No published posts.</value></data>
   <data name="MyPosts_NoPosts" xml:space="preserve"><value>No posts yet.</value></data>
@@ -200,7 +200,7 @@
   <data name="MyPosts_TooltipDelete" xml:space="preserve"><value>Delete</value></data>
 
   <!-- Moderation -->
-  <data name="Mod_Title" xml:space="preserve"><value>✅ Moderation Queue</value></data>
+  <data name="Mod_Title" xml:space="preserve"><value>Moderation Queue</value></data>
   <data name="Mod_NoPending" xml:space="preserve"><value>No pending comments.</value></data>
   <data name="Mod_AllReviewed" xml:space="preserve"><value>All comments have been reviewed.</value></data>
   <data name="Mod_ApproveSelected" xml:space="preserve"><value>✅ Approve Selected ({0})</value></data>
@@ -217,7 +217,7 @@
   <data name="Mod_BulkRejected" xml:space="preserve"><value>Rejected {0} comment(s).</value></data>
 
   <!-- User Management -->
-  <data name="Users_Title" xml:space="preserve"><value>👥 User Management</value></data>
+  <data name="Users_Title" xml:space="preserve"><value>User Management</value></data>
   <data name="Users_BulkActions" xml:space="preserve"><value>Bulk Actions:</value></data>
   <data name="Users_Selected" xml:space="preserve"><value>{0} user(s) selected</value></data>
   <data name="Users_AssignGroup" xml:space="preserve"><value>+ Assign Group</value></data>
@@ -237,12 +237,12 @@
   <data name="Users_BulkDeleted" xml:space="preserve"><value>Selected users deleted.</value></data>
 
   <!-- Settings -->
-  <data name="Settings_Title" xml:space="preserve"><value>⚙️ System Settings</value></data>
+  <data name="Settings_Title" xml:space="preserve"><value>System Settings</value></data>
   <data name="Settings_Save" xml:space="preserve"><value>💾 Save</value></data>
   <data name="Settings_Saved" xml:space="preserve"><value>Setting "{0}" saved.</value></data>
 
   <!-- Profile -->
-  <data name="Profile_Title" xml:space="preserve"><value>👤 Profile</value></data>
+  <data name="Profile_Title" xml:space="preserve"><value>Profile</value></data>
   <data name="Profile_Username" xml:space="preserve"><value>Username</value></data>
   <data name="Profile_Email" xml:space="preserve"><value>Email</value></data>
   <data name="Profile_EmailNotSet" xml:space="preserve"><value>Not set</value></data>

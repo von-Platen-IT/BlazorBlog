@@ -1,5 +1,4 @@
 @inherits LayoutComponentBase
-@inject NavigationManager Navigation
 @inject ApiClient Api
 
 <div class="d-flex flex-column min-vh-100">
@@ -36,7 +35,9 @@
                         {
                             <li class="nav-item"><NavLink class="nav-link" href="/profile">👤 @UserName</NavLink></li>
                             <li class="nav-item d-flex align-items-center ms-2">
-                                <button class="btn btn-outline-light btn-sm" @onclick="LogoutAsync">@L["Nav_Logout"]</button>
+                                <form method="post" action="/api/auth/logout">
+                                    <button type="submit" class="btn btn-outline-light btn-sm">@L["Nav_Logout"]</button>
+                                </form>
                             </li>
                         }
                         else
@@ -85,7 +86,9 @@
                         {
                             <li class="mb-1"><a href="/profile" class="text-light text-decoration-none">@L["Nav_Profile"]</a></li>
                             <li>
-                                <button class="btn btn-link text-secondary p-0 small" @onclick="LogoutAsync">@L["Nav_SignOut"]</button>
+                                <form method="post" action="/api/auth/logout">
+                                    <button type="submit" class="btn btn-link text-secondary p-0 small">@L["Nav_SignOut"]</button>
+                                </form>
                             </li>
                         }
                         else
@@ -122,18 +125,5 @@
             IsAdmin = user.Groups.Contains("Admin");
             IsAuthor = user.Groups.Contains("Author");
         }
-    }
-
-    private async Task LogoutAsync()
-    {
-        await Api.LogoutAsync();
-        // Re-read auth state after logout
-        var user = await Api.GetCurrentUserAsync();
-        IsAuthenticated = false;
-        IsAuthor = false;
-        IsAdmin = false;
-        IsRoot = false;
-        UserName = null;
-        Navigation.NavigateTo("/");
     }
 }

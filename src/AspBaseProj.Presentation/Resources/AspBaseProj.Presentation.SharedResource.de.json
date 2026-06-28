@@ -10,7 +10,6 @@
   "Common_No": "Nein",
   "Common_Unknown": "Unbekannt",
   "Common_Guest": "Gast",
-
   "Nav_Brand": "BlazorBlog",
   "Nav_Home": "Startseite",
   "Nav_MyPosts": "Meine Beiträge",
@@ -28,12 +27,10 @@
   "Footer_Navigation": "Navigation",
   "Footer_Account": "Konto",
   "Footer_Copyright": "© 2026 BlazorBlog — Powered by ASP.NET Core und BootstrapBlazor",
-
-  "Home_Title": "📝 Neueste Beiträge",
+  "Home_Title": "Neueste Beiträge",
   "Home_NoPosts": "Noch keine Beiträge.",
   "Home_WriteFirstPost": "Ersten Beitrag schreiben",
   "PostList_By": "Von",
-
   "PostDetail_Draft": "📝 Entwurf",
   "PostDetail_Created": "Erstellt",
   "PostDetail_PublishNow": "✅ Jetzt veröffentlichen",
@@ -50,7 +47,6 @@
   "PostDetail_LoginToRate": "Anmelden zum Bewerten",
   "PostDetail_Bookmark": "Lesezeichen",
   "PostDetail_Bookmarked": "Lesezeichen gesetzt",
-
   "Comments_Title": "💬 Kommentare",
   "Comments_AddTitle": "Kommentar hinzufügen",
   "Comments_PlaceholderName": "Ihr Name",
@@ -71,7 +67,6 @@
   "Comments_RepliesClosed": "Antworten sind in diesem Thread geschlossen",
   "Comments_Anonymous": "Anonym",
   "Comments_FailedReply": "Antwort konnte nicht gesendet werden. Bitte erneut versuchen.",
-
   "Login_Title": "Anmelden",
   "Login_Username": "Benutzername",
   "Login_Password": "Passwort",
@@ -81,7 +76,6 @@
   "Login_NoAccount": "Noch kein Konto?",
   "Login_RegisterLink": "Registrieren",
   "Login_InvalidCredentials": "Ungültige Anmeldedaten.",
-
   "Register_Title": "Registrieren",
   "Register_Username": "Benutzername",
   "Register_EmailOptional": "E-Mail (optional)",
@@ -92,7 +86,6 @@
   "Register_HaveAccount": "Bereits ein Konto?",
   "Register_LoginLink": "Anmelden",
   "Register_Failed": "Registrierung fehlgeschlagen. Der Benutzername ist möglicherweise vergeben.",
-
   "Editor_NewPost": "✏️ Neuer Beitrag",
   "Editor_EditPost": "✏️ Beitrag bearbeiten",
   "Editor_Title": "Titel",
@@ -106,7 +99,6 @@
   "Editor_FailedCreate": "Beitrag konnte nicht erstellt werden.",
   "Editor_FailedUpdate": "Beitrag konnte nicht aktualisiert werden.",
   "Editor_FailedDelete": "Beitrag konnte nicht gelöscht werden.",
-
   "Images_Title": "🖼️ Bilder",
   "Images_Upload": "Bild hochladen",
   "Images_Uploading": "Wird hochgeladen...",
@@ -115,19 +107,17 @@
   "Images_None": "Noch keine Bilder hochgeladen.",
   "Images_CopyMarkdown": "📋 Markdown kopieren",
   "Images_FailedUpload": "Bild konnte nicht hochgeladen werden.",
-
   "Social_Open": "Öffnen",
   "Social_YouTube": "YouTube-Video",
   "Social_Vimeo": "Vimeo-Video",
   "Social_Twitter": "X / Twitter-Beitrag",
   "Social_ExternalLink": "Externer Link",
-
-  "MyPosts_Title": "📋 Meine Beiträge",
+  "MyPosts_Title": "Meine Beiträge",
   "MyPosts_All": "Alle",
-  "MyPosts_Published": "✅ Veröffentlicht",
-  "MyPosts_Drafts": "📝 Entwürfe",
-  "MyPosts_Bookmarks": "🔖 Lesezeichen",
-  "MyPosts_NewPost": "✏️ Neuer Beitrag",
+  "MyPosts_Published": "Veröffentlicht",
+  "MyPosts_Drafts": "Entwürfe",
+  "MyPosts_Bookmarks": "Lesezeichen",
+  "MyPosts_NewPost": "Neuer Beitrag",
   "MyPosts_NoDrafts": "Keine Entwürfe.",
   "MyPosts_NoPublished": "Keine veröffentlichten Beiträge.",
   "MyPosts_NoPosts": "Noch keine Beiträge.",
@@ -152,8 +142,7 @@
   "MyPosts_TooltipEdit": "Bearbeiten",
   "MyPosts_TooltipPublish": "Veröffentlichen",
   "MyPosts_TooltipDelete": "Löschen",
-
-  "Mod_Title": "✅ Moderations-Warteschlange",
+  "Mod_Title": "Moderations-Warteschlange",
   "Mod_NoPending": "Keine ausstehenden Kommentare.",
   "Mod_AllReviewed": "Alle Kommentare wurden überprüft.",
   "Mod_ApproveSelected": "✅ Ausgewählte freigeben ({0})",
@@ -168,8 +157,7 @@
   "Mod_Rejected": "Kommentar abgelehnt.",
   "Mod_BulkApproved": "{0} Kommentar(en) freigegeben.",
   "Mod_BulkRejected": "{0} Kommentar(en) abgelehnt.",
-
-  "Users_Title": "👥 Benutzerverwaltung",
+  "Users_Title": "Benutzerverwaltung",
   "Users_BulkActions": "Massenaktionen:",
   "Users_Selected": "{0} Benutzer ausgewählt",
   "Users_AssignGroup": "+ Gruppe zuweisen",
@@ -187,23 +175,19 @@
   "Users_BulkGroupAssigned": "Gruppe ausgewählten Benutzern zugewiesen.",
   "Users_BulkGroupRemoved": "Gruppe von ausgewählten Benutzern entfernt.",
   "Users_BulkDeleted": "Ausgewählte Benutzer gelöscht.",
-
-  "Settings_Title": "⚙️ Systemeinstellungen",
+  "Settings_Title": "Systemeinstellungen",
   "Settings_Save": "💾 Speichern",
   "Settings_Saved": "Einstellung „{0}\" gespeichert.",
-
-  "Profile_Title": "👤 Profil",
+  "Profile_Title": "Profil",
   "Profile_Username": "Benutzername",
   "Profile_Email": "E-Mail",
   "Profile_EmailNotSet": "Nicht gesetzt",
   "Profile_Groups": "Gruppen",
   "Profile_NoGroups": "Keine (Root hat uneingeschränkten Zugriff)",
   "Profile_RootBadge": "Root",
-
   "DeleteModal_Delete": "Löschen",
   "DeleteModal_Deleting": "Wird gelöscht...",
   "DeleteModal_Warning": "Diese Aktion kann nicht rückgängig gemacht werden.",
-
   "Lang_English": "English",
   "Lang_German": "Deutsch"
 }
