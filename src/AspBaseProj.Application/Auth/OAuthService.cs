@@ -1,3 +1,4 @@
+using AspBaseProj.Application.Contracts.Auth;
 using AspBaseProj.Domain.Entities;
 using AspBaseProj.Domain.Interfaces;
 using Microsoft.Extensions.Logging;

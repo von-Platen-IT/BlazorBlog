@@ -1,0 +1,61 @@
+@* MarkdownEditor.razor *@
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="mb-3">
+            <label class="form-label fw-bold">@L["Editor_Title"]</label>
+            <input class="form-control" value="@Title"
+                   @onchange="OnTitleChanged"
+                   placeholder="@L["Editor_TitlePlaceholder"]" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">@L["Editor_Content"]</label>
+            <textarea class="form-control" rows="15" value="@Content"
+                      @onchange="OnContentChanged"
+                      placeholder="@L["Editor_ContentPlaceholder"]"></textarea>
+        </div>
+        <div class="mb-3 form-check form-switch">
+            <input type="checkbox" class="form-check-input" checked="@IsPublished"
+                   @onchange="OnIsPublishedChanged" id="publishSwitch" />
+            <label class="form-check-label" for="publishSwitch">@L["Editor_Published"]</label>
+        </div>
+        <div class="d-flex gap-2">
+            <Button Color="Color.Primary" OnClick="@OnSave" IsDisabled="IsLoading">
+                @SaveButtonText
+            </Button>
+            @if (ShowDelete)
+            {
+                <Button Color="Color.Danger" OnClick="@OnDelete" IsDisabled="IsLoading">@L["Common_Delete"]</Button>
+            }
+            <a href="/" class="btn btn-secondary">@L["Common_Cancel"]</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public EventCallback<string> TitleChanged { get; set; }
+    [Parameter] public string Content { get; set; } = "";
+    [Parameter] public EventCallback<string> ContentChanged { get; set; }
+    [Parameter] public bool IsPublished { get; set; }
+    [Parameter] public EventCallback<bool> IsPublishedChanged { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public string SaveButtonText { get; set; } = "Save";
+    [Parameter] public bool ShowDelete { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    private async Task OnTitleChanged(ChangeEventArgs e)
+    {
+        await TitleChanged.InvokeAsync(e.Value?.ToString() ?? "");
+    }
+
+    private async Task OnContentChanged(ChangeEventArgs e)
+    {
+        await ContentChanged.InvokeAsync(e.Value?.ToString() ?? "");
+    }
+
+    private async Task OnIsPublishedChanged(ChangeEventArgs e)
+    {
+        await IsPublishedChanged.InvokeAsync(e.Value is not null && (bool)e.Value);
+    }
+}

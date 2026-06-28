@@ -1,15 +1,11 @@
-using System.Security.Claims;
+using System.Globalization;
 using System.Text;
 using AspBaseProj.Application;
-using AspBaseProj.Application.Auth;
-using AspBaseProj.Application.Common;
-using AspBaseProj.Domain.Entities;
-using AspBaseProj.Domain.Interfaces;
 using AspBaseProj.Infrastructure;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,19 +16,37 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Application
 builder.Services.AddApplication();
 
+// Controllers
+builder.Services.AddControllers();
+
 // Blazor
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddBootstrapBlazor();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<AspBaseProj.Presentation.Components.Shared.CookieForwardingHandler>();
-builder.Services.AddScoped<HttpClient>(sp =>
-{
-    var handler = sp.GetRequiredService<AspBaseProj.Presentation.Components.Shared.CookieForwardingHandler>();
-    handler.InnerHandler = new HttpClientHandler();
-    var client = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:5113") };
-    return client;
-});
 builder.Services.AddScoped<AspBaseProj.Presentation.Components.Shared.ApiClient>();
+builder.Services.AddScoped<AspBaseProj.Presentation.Components.Shared.CascadingAuthState>();
+
+// Localization — registered AFTER AddBootstrapBlazor() to override its JsonStringLocalizer
+// with the standard .NET ResourceManagerStringLocalizer that reads .resx files.
+// No ResourcesPath needed — the SharedResource type is in namespace AspBaseProj.Presentation.Resources
+// which maps to the Resources/ folder by default convention.
+builder.Services.AddLocalization();
+
+// Override BootstrapBlazor's JsonStringLocalizer with the standard .resx-based localizer
+builder.Services.AddSingleton<IStringLocalizerFactory, ResourceManagerStringLocalizerFactory>();
+builder.Services.AddTransient(typeof(IStringLocalizer<>), typeof(StringLocalizer<>));
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("en"),
+        new CultureInfo("de"),
+    };
+    options.DefaultRequestCulture = new RequestCulture("en");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
 
 // OpenAPI / Swagger
 builder.Services.AddOpenApi();
@@ -73,7 +87,7 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         RoleClaimType = "groups",
-        NameClaimType = ClaimTypes.Name
+        NameClaimType = System.Security.Claims.ClaimTypes.Name
     };
 });
 
@@ -136,681 +150,17 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles();
+app.UseRequestLocalization();
 app.UseAntiforgery();
 
 // Swagger
 app.MapOpenApi();
 
+// Controllers
+app.MapControllers();
+
 // Blazor
 app.MapRazorComponents<AspBaseProj.Presentation.Components.App>()
     .AddInteractiveServerRenderMode();
 
-// ============================================================
-// AUTH ENDPOINTS
-// ============================================================
-var authGroup = app.MapGroup("/api/auth");
-
-authGroup.MapPost("/register", async (HttpContext ctx, AuthService authService) =>
-{
-    string userName, email, password;
-
-    if (ctx.Request.HasJsonContentType())
-    {
-        var body = await ctx.Request.ReadFromJsonAsync<RegisterRequest>();
-        if (body is null) return Results.BadRequest(new { error = "Invalid request body." });
-        userName = body.UserName;
-        email = body.Email ?? "";
-        password = body.Password;
-    }
-    else
-    {
-        var form = await ctx.Request.ReadFormAsync();
-        userName = form["userName"].ToString();
-        email = form["email"].ToString();
-        password = form["password"].ToString();
-    }
-
-    try
-    {
-        var response = await authService.RegisterAsync(new RegisterRequest(userName, string.IsNullOrEmpty(email) ? null : email, password));
-        await SignInWithCookie(ctx, response);
-        return ctx.Request.HasJsonContentType() ? Results.Ok(response) : Results.Redirect("/");
-    }
-    catch (InvalidOperationException ex)
-    {
-        return ctx.Request.HasJsonContentType()
-            ? Results.BadRequest(new { error = ex.Message })
-            : Results.Redirect($"/register?error={Uri.EscapeDataString(ex.Message)}");
-    }
-}).DisableAntiforgery();
-
-authGroup.MapPost("/login", async (HttpContext ctx, AuthService authService) =>
-{
-    string userName, password;
-
-    if (ctx.Request.HasJsonContentType())
-    {
-        var body = await ctx.Request.ReadFromJsonAsync<LoginRequest>();
-        if (body is null) return Results.BadRequest(new { error = "Invalid request body." });
-        userName = body.UserName;
-        password = body.Password;
-    }
-    else
-    {
-        var form = await ctx.Request.ReadFormAsync();
-        userName = form["userName"].ToString();
-        password = form["password"].ToString();
-    }
-
-    try
-    {
-        var response = await authService.LoginAsync(new LoginRequest(userName, password));
-        await SignInWithCookie(ctx, response);
-        return ctx.Request.HasJsonContentType() ? Results.Ok(response) : Results.Redirect("/");
-    }
-    catch (UnauthorizedAccessException)
-    {
-        return ctx.Request.HasJsonContentType()
-            ? Results.Unauthorized()
-            : Results.Redirect("/login?error=Invalid%20credentials");
-    }
-    catch (InvalidOperationException)
-    {
-        return ctx.Request.HasJsonContentType()
-            ? Results.Unauthorized()
-            : Results.Redirect("/login?error=Login%20failed");
-    }
-}).DisableAntiforgery();
-
-authGroup.MapPost("/logout", async (HttpContext ctx) =>
-{
-    await ctx.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    return ctx.Request.HasJsonContentType()
-        ? Results.Ok(new { message = "Logged out" })
-        : Results.Redirect("/");
-}).DisableAntiforgery();
-
-authGroup.MapGet("/me", (HttpContext ctx) =>
-{
-    if (ctx.User.Identity?.IsAuthenticated != true) return Results.Unauthorized();
-    return Results.Ok(new
-    {
-        UserId = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier),
-        UserName = ctx.User.FindFirstValue(ClaimTypes.Name),
-        Email = ctx.User.FindFirstValue(ClaimTypes.Email),
-        IsRoot = ctx.User.FindFirstValue("is_root") == "true",
-        Groups = ctx.User.FindAll("groups").Select(c => c.Value).ToList()
-    });
-}).RequireAuthorization();
-
-authGroup.MapGet("/login/{provider}", (string provider) =>
-{
-    var scheme = ResolveOAuthScheme(provider);
-    if (scheme is null) return Results.BadRequest(new { error = $"Unknown provider: {provider}" });
-    return Results.Challenge(new AuthenticationProperties { RedirectUri = $"/api/auth/callback/{provider}" }, [scheme]);
-});
-
-authGroup.MapGet("/callback/{provider}", async (string provider, HttpContext ctx, OAuthService oauthService) =>
-{
-    var scheme = ResolveOAuthScheme(provider);
-    if (scheme is null) return Results.BadRequest(new { error = $"Unknown provider: {provider}" });
-
-    var authResult = await ctx.AuthenticateAsync(scheme);
-    if (!authResult.Succeeded) return Results.Unauthorized();
-
-    var claims = authResult.Principal;
-    var providerKey = claims.FindFirstValue(ClaimTypes.NameIdentifier)!;
-    var email = claims.FindFirstValue(ClaimTypes.Email);
-    var name = claims.FindFirstValue(ClaimTypes.Name);
-
-    var response = await oauthService.LoginOrRegisterFromOAuthAsync(provider, providerKey, email, name);
-    await SignInWithCookie(ctx, response);
-    return Results.Redirect("/");
-});
-
-// ============================================================
-// POSTS ENDPOINTS
-// ============================================================
-var postsGroup = app.MapGroup("/api/posts");
-
-postsGroup.MapGet("/", async (IPostRepository repo, IPostRatingRepository ratingRepo, int page = 1, int pageSize = 10) =>
-{
-    var (posts, total) = await repo.GetPublishedAsync(page, pageSize);
-    var postIds = posts.Select(p => p.Id).ToList();
-    var ratingCounts = await ratingRepo.GetCountsByPostIdsAsync(postIds);
-    var dtos = posts.Select(p =>
-    {
-        var (likeCount, dislikeCount) = ratingCounts.TryGetValue(p.Id, out var rc) ? rc : (0, 0);
-        return new
-        {
-            p.Id, p.Title, p.Content, p.AuthorId, p.IsPublished, p.CreatedAt, p.UpdatedAt, p.PublishedAt,
-            Author = p.Author is not null ? new { p.Author.Id, p.Author.UserName } : null,
-            LikeCount = likeCount,
-            DislikeCount = dislikeCount
-        };
-    });
-    return Results.Ok(new { posts = dtos, total, page, pageSize });
-});
-
-postsGroup.MapGet("/my", async (IPostRepository postRepo, ICommentRepository commentRepo, CurrentUserService user, int page = 1, int pageSize = 10) =>
-{
-    if (!user.IsAuthenticated) return Results.Unauthorized();
-
-    var (posts, total) = await postRepo.GetByAuthorIdPaginatedAsync(user.UserId!.Value, page, pageSize);
-
-    // Batch-load comment counts
-    var postIds = posts.Select(p => p.Id).ToList();
-    var commentCounts = await commentRepo.GetCommentCountsByPostIdsAsync(postIds);
-
-    // Map to DTOs with comment info
-    var dtos = posts.Select(p => new
-    {
-        p.Id,
-        p.Title,
-        Content = p.Content.Length > 200 ? p.Content[..200] + "..." : p.Content,
-        p.IsPublished,
-        p.CreatedAt,
-        p.UpdatedAt,
-        p.PublishedAt,
-        CommentCount = commentCounts.TryGetValue(p.Id, out var count) ? count : 0
-    });
-
-    return Results.Ok(new { posts = dtos, total, page, pageSize });
-}).RequireAuthorization("AuthorOrAdminOrRootPolicy");
-
-postsGroup.MapGet("/{id:guid}", async (Guid id, IPostRepository repo, CurrentUserService user) =>
-{
-    var post = await repo.GetByIdAsync(id);
-    if (post is null) return Results.NotFound();
-    // Allow access if published, or if the current user is the author, admin, or root
-    if (post.IsPublished) return Results.Ok(MapPost(post));
-    if (user.IsAuthenticated && (post.AuthorId == user.UserId || user.IsRoot || user.IsInGroup("Admin")))
-        return Results.Ok(MapPost(post));
-    return Results.NotFound();
-});
-
-postsGroup.MapPost("/", async (Post post, IPostRepository repo, CurrentUserService user) =>
-{
-    if (!user.IsAuthenticated) return Results.Unauthorized();
-    post.Id = Guid.NewGuid();
-    post.AuthorId = user.UserId!.Value;
-    post.CreatedAt = DateTime.UtcNow;
-    if (post.IsPublished) post.PublishedAt = DateTime.UtcNow;
-    var created = await repo.AddAsync(post);
-    return Results.Created($"/api/posts/{created.Id}", MapPost(created));
-}).RequireAuthorization("AuthorOrAdminOrRootPolicy");
-
-postsGroup.MapPut("/{id:guid}", async (Guid id, Post input, IPostRepository repo, CurrentUserService user) =>
-{
-    var post = await repo.GetByIdAsync(id);
-    if (post is null) return Results.NotFound();
-    if (!user.IsRoot && !user.IsInGroup("Admin") && post.AuthorId != user.UserId)
-        return Results.Forbid();
-
-    post.Title = input.Title;
-    post.Content = input.Content;
-    post.IsPublished = input.IsPublished;
-    post.UpdatedAt = DateTime.UtcNow;
-    if (input.IsPublished && post.PublishedAt is null) post.PublishedAt = DateTime.UtcNow;
-    await repo.UpdateAsync(post);
-    return Results.Ok(MapPost(post));
-}).RequireAuthorization("AuthorOrAdminOrRootPolicy");
-
-postsGroup.MapDelete("/{id:guid}", async (Guid id, IPostRepository repo, CurrentUserService user) =>
-{
-    var post = await repo.GetByIdAsync(id);
-    if (post is null) return Results.NotFound();
-    if (!user.IsRoot && !user.IsInGroup("Admin") && post.AuthorId != user.UserId)
-        return Results.Forbid();
-
-    await repo.DeleteAsync(post);
-    return Results.NoContent();
-}).RequireAuthorization("AuthorOrAdminOrRootPolicy");
-
-// ============================================================
-// RATING ENDPOINTS
-// ============================================================
-postsGroup.MapPost("/{id:guid}/like", async (Guid id, IPostRatingRepository ratingRepo, IPostRepository postRepo, CurrentUserService user) =>
-{
-    if (!user.IsAuthenticated) return Results.Unauthorized();
-    var post = await postRepo.GetByIdAsync(id);
-    if (post is null) return Results.NotFound();
-
-    var existing = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
-    if (existing is not null && existing.IsLike)
-    {
-        await ratingRepo.DeleteAsync(existing);
-    }
-    else if (existing is not null)
-    {
-        existing.IsLike = true;
-        await ratingRepo.UpdateAsync(existing);
-    }
-    else
-    {
-        await ratingRepo.AddAsync(new PostRating
-        {
-            Id = Guid.NewGuid(),
-            PostId = id,
-            UserId = user.UserId!.Value,
-            IsLike = true,
-            CreatedAt = DateTime.UtcNow
-        });
-    }
-
-    var (likeCount, dislikeCount) = await ratingRepo.GetCountsAsync(id);
-    var userRating = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
-    return Results.Ok(new { likeCount, dislikeCount, userRating = userRating is not null ? (userRating.IsLike ? "like" : "dislike") : (string?)null });
-}).RequireAuthorization();
-
-postsGroup.MapPost("/{id:guid}/dislike", async (Guid id, IPostRatingRepository ratingRepo, IPostRepository postRepo, CurrentUserService user) =>
-{
-    if (!user.IsAuthenticated) return Results.Unauthorized();
-    var post = await postRepo.GetByIdAsync(id);
-    if (post is null) return Results.NotFound();
-
-    var existing = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
-    if (existing is not null && !existing.IsLike)
-    {
-        await ratingRepo.DeleteAsync(existing);
-    }
-    else if (existing is not null)
-    {
-        existing.IsLike = false;
-        await ratingRepo.UpdateAsync(existing);
-    }
-    else
-    {
-        await ratingRepo.AddAsync(new PostRating
-        {
-            Id = Guid.NewGuid(),
-            PostId = id,
-            UserId = user.UserId!.Value,
-            IsLike = false,
-            CreatedAt = DateTime.UtcNow
-        });
-    }
-
-    var (likeCount, dislikeCount) = await ratingRepo.GetCountsAsync(id);
-    var userRating = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
-    return Results.Ok(new { likeCount, dislikeCount, userRating = userRating is not null ? (userRating.IsLike ? "like" : "dislike") : (string?)null });
-}).RequireAuthorization();
-
-postsGroup.MapGet("/{id:guid}/rating", async (Guid id, IPostRatingRepository ratingRepo, CurrentUserService user) =>
-{
-    var (likeCount, dislikeCount) = await ratingRepo.GetCountsAsync(id);
-    string? userRating = null;
-    if (user.IsAuthenticated)
-    {
-        var existing = await ratingRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
-        userRating = existing is not null ? (existing.IsLike ? "like" : "dislike") : null;
-    }
-    return Results.Ok(new { likeCount, dislikeCount, userRating });
-});
-
-// ============================================================
-// BOOKMARK ENDPOINTS
-// ============================================================
-postsGroup.MapPost("/{id:guid}/bookmark", async (Guid id, IBookmarkRepository bookmarkRepo, IPostRepository postRepo, CurrentUserService user) =>
-{
-    if (!user.IsAuthenticated) return Results.Unauthorized();
-    var post = await postRepo.GetByIdAsync(id);
-    if (post is null) return Results.NotFound();
-
-    var existing = await bookmarkRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
-    if (existing is not null)
-    {
-        await bookmarkRepo.DeleteAsync(existing);
-        return Results.Ok(new { isBookmarked = false });
-    }
-
-    await bookmarkRepo.AddAsync(new Bookmark
-    {
-        Id = Guid.NewGuid(),
-        PostId = id,
-        UserId = user.UserId!.Value,
-        CreatedAt = DateTime.UtcNow
-    });
-    return Results.Ok(new { isBookmarked = true });
-}).RequireAuthorization();
-
-postsGroup.MapGet("/{id:guid}/bookmark", async (Guid id, IBookmarkRepository bookmarkRepo, CurrentUserService user) =>
-{
-    if (!user.IsAuthenticated) return Results.Ok(new { isBookmarked = false });
-    var existing = await bookmarkRepo.GetByPostAndUserAsync(id, user.UserId!.Value);
-    return Results.Ok(new { isBookmarked = existing is not null });
-}).RequireAuthorization();
-
-postsGroup.MapGet("/bookmarks/list", async (IBookmarkRepository bookmarkRepo, IPostRatingRepository ratingRepo, ICommentRepository commentRepo, CurrentUserService user, int page = 1, int pageSize = 10) =>
-{
-    if (!user.IsAuthenticated) return Results.Unauthorized();
-
-    var (posts, total) = await bookmarkRepo.GetBookmarkedPostsAsync(user.UserId!.Value, page, pageSize);
-
-    var postIds = posts.Select(p => p.Id).ToList();
-    var ratingCounts = await ratingRepo.GetCountsByPostIdsAsync(postIds);
-    var commentCounts = await commentRepo.GetCommentCountsByPostIdsAsync(postIds);
-
-    var dtos = posts.Select(p => new
-    {
-        p.Id,
-        p.Title,
-        Content = p.Content.Length > 200 ? p.Content[..200] + "..." : p.Content,
-        AuthorName = p.Author.UserName,
-        p.IsPublished,
-        p.PublishedAt,
-        LikeCount = ratingCounts.TryGetValue(p.Id, out var rc) ? rc.LikeCount : 0,
-        DislikeCount = ratingCounts.TryGetValue(p.Id, out rc) ? rc.DislikeCount : 0,
-        CommentCount = commentCounts.TryGetValue(p.Id, out var cc) ? cc : 0
-    });
-
-    return Results.Ok(new { posts = dtos, total, page, pageSize });
-}).RequireAuthorization();
-
-// ============================================================
-// MEDIA ENDPOINTS
-// ============================================================
-var mediaGroup = app.MapGroup("/api/media");
-
-mediaGroup.MapGet("/post/{postId:guid}", async (Guid postId, IMediaRepository repo) =>
-{
-    var media = await repo.GetByPostIdAsync(postId);
-    return Results.Ok(media.Select(m => new { m.Id, m.FileName, m.ContentType, m.CreatedAt }));
-});
-
-mediaGroup.MapPost("/post/{postId:guid}", async (Guid postId, HttpRequest request, IMediaRepository repo, IPostRepository postRepo, CurrentUserService user) =>
-{
-    var post = await postRepo.GetByIdAsync(postId);
-    if (post is null) return Results.NotFound();
-    if (!user.IsRoot && !user.IsInGroup("Admin") && post.AuthorId != user.UserId)
-        return Results.Forbid();
-
-    var form = await request.ReadFormAsync();
-    var file = form.Files.GetFile("file");
-    if (file is null) return Results.BadRequest(new { error = "No file provided." });
-
-    var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-    if (!allowedTypes.Contains(file.ContentType))
-        return Results.BadRequest(new { error = "Invalid file type." });
-    if (file.Length > 5 * 1024 * 1024)
-        return Results.BadRequest(new { error = "File too large. Max 5 MB." });
-
-    using var ms = new MemoryStream();
-    await file.CopyToAsync(ms);
-    var mediaItem = new Media
-    {
-        Id = Guid.NewGuid(),
-        PostId = postId,
-        FileName = file.FileName,
-        ContentType = file.ContentType,
-        Data = ms.ToArray(),
-        CreatedAt = DateTime.UtcNow
-    };
-    await repo.AddAsync(mediaItem);
-    return Results.Created($"/api/media/{mediaItem.Id}", new { mediaItem.Id, mediaItem.FileName, mediaItem.ContentType });
-}).RequireAuthorization("AuthorOrAdminOrRootPolicy");
-
-mediaGroup.MapGet("/{id:guid}/data", async (Guid id, IMediaRepository repo) =>
-{
-    var media = await repo.GetByIdAsync(id);
-    return media is not null ? Results.File(media.Data, media.ContentType, media.FileName) : Results.NotFound();
-});
-
-mediaGroup.MapDelete("/{id:guid}", async (Guid id, IMediaRepository repo, IPostRepository postRepo, CurrentUserService user) =>
-{
-    var media = await repo.GetByIdAsync(id);
-    if (media is null) return Results.NotFound();
-    var post = await postRepo.GetByIdAsync(media.PostId);
-    if (post is null) return Results.NotFound();
-    if (!user.IsRoot && !user.IsInGroup("Admin") && post.AuthorId != user.UserId)
-        return Results.Forbid();
-
-    await repo.DeleteAsync(media);
-    return Results.NoContent();
-}).RequireAuthorization("AuthorOrAdminOrRootPolicy");
-
-// ============================================================
-// COMMENTS ENDPOINTS
-// ============================================================
-var commentsGroup = app.MapGroup("/api/comments");
-
-commentsGroup.MapGet("/post/{postId:guid}", async (Guid postId, ICommentRepository repo) =>
-{
-    var comments = await repo.GetByPostIdAsync(postId);
-    return Results.Ok(comments.Select(MapComment));
-});
-
-commentsGroup.MapPost("/post/{postId:guid}", async (Guid postId, Comment comment, ICommentRepository repo, CurrentUserService user) =>
-{
-    comment.Id = Guid.NewGuid();
-    comment.PostId = postId;
-    comment.CreatedAt = DateTime.UtcNow;
-
-    if (user.IsAuthenticated)
-    {
-        comment.UserId = user.UserId;
-        comment.IsApproved = true;
-    }
-    else
-    {
-        comment.IsApproved = false;
-        if (string.IsNullOrWhiteSpace(comment.GuestName) || string.IsNullOrWhiteSpace(comment.GuestEmail))
-            return Results.BadRequest(new { error = "Guest name and email are required." });
-    }
-
-    var created = await repo.AddAsync(comment);
-    return Results.Created($"/api/comments/{created.Id}", MapComment(created));
-});
-
-commentsGroup.MapPost("/{id:guid}/reply", async (Guid id, Comment reply, ICommentRepository repo, CurrentUserService user) =>
-{
-    var parent = await repo.GetByIdAsync(id);
-    if (parent is null) return Results.NotFound();
-
-    reply.Id = Guid.NewGuid();
-    reply.PostId = parent.PostId;
-    reply.ParentCommentId = id;
-    reply.CreatedAt = DateTime.UtcNow;
-
-    if (user.IsAuthenticated)
-    {
-        reply.UserId = user.UserId;
-        reply.IsApproved = true;
-    }
-    else
-    {
-        reply.IsApproved = false;
-        if (string.IsNullOrWhiteSpace(reply.GuestName) || string.IsNullOrWhiteSpace(reply.GuestEmail))
-            return Results.BadRequest(new { error = "Guest name and email are required." });
-    }
-
-    var created = await repo.AddAsync(reply);
-    return Results.Created($"/api/comments/{created.Id}", MapComment(created));
-});
-
-// ============================================================
-// MODERATION ENDPOINTS (Admin/Root)
-// ============================================================
-var modGroup = app.MapGroup("/api/admin/comments").RequireAuthorization("AdminOrRootPolicy");
-
-modGroup.MapGet("/pending", async (ICommentRepository repo) =>
-{
-    var pending = await repo.GetPendingAsync();
-    return Results.Ok(pending.Select(MapComment));
-});
-
-modGroup.MapPost("/{id:guid}/approve", async (Guid id, ICommentRepository repo) =>
-{
-    var comment = await repo.GetByIdAsync(id);
-    if (comment is null) return Results.NotFound();
-    comment.IsApproved = true;
-    await repo.UpdateAsync(comment);
-    return Results.Ok(MapComment(comment));
-});
-
-modGroup.MapPost("/{id:guid}/reject", async (Guid id, ICommentRepository repo) =>
-{
-    var comment = await repo.GetByIdAsync(id);
-    if (comment is null) return Results.NotFound();
-    await repo.DeleteAsync(comment);
-    return Results.NoContent();
-});
-
-modGroup.MapPost("/bulk-approve", async (Guid[] ids, ICommentRepository repo) =>
-{
-    foreach (var id in ids)
-    {
-        var comment = await repo.GetByIdAsync(id);
-        if (comment is not null) { comment.IsApproved = true; await repo.UpdateAsync(comment); }
-    }
-    return Results.Ok(new { approved = ids.Length });
-});
-
-modGroup.MapPost("/bulk-reject", async (Guid[] ids, ICommentRepository repo) =>
-{
-    foreach (var id in ids)
-    {
-        var comment = await repo.GetByIdAsync(id);
-        if (comment is not null) await repo.DeleteAsync(comment);
-    }
-    return Results.Ok(new { rejected = ids.Length });
-});
-
-// ============================================================
-// USER MANAGEMENT ENDPOINTS (Root only)
-// ============================================================
-var adminGroup = app.MapGroup("/api/admin").RequireAuthorization("RootPolicy");
-
-adminGroup.MapGet("/groups", async (IGroupRepository repo) =>
-{
-    var groups = await repo.GetAllAsync();
-    return Results.Ok(groups.Select(g => new { g.Id, g.Name, g.Description }));
-});
-
-var usersGroup = app.MapGroup("/api/admin/users").RequireAuthorization("RootPolicy");
-
-usersGroup.MapGet("/", async (IAppUserRepository repo) =>
-{
-    var users = await repo.GetAllAsync();
-    return Results.Ok(users.Select(u => new
-    {
-        u.Id, u.UserName, u.Email, u.IsRoot, u.CreatedAt,
-        Groups = u.Groups.Select(g => g.Name).ToList()
-    }));
-});
-
-usersGroup.MapGet("/{id:guid}", async (Guid id, IAppUserRepository repo) =>
-{
-    var user = await repo.GetByIdAsync(id);
-    return user is not null ? Results.Ok(new
-    {
-        user.Id, user.UserName, user.Email, user.IsRoot, user.CreatedAt,
-        Groups = user.Groups.Select(g => g.Name).ToList()
-    }) : Results.NotFound();
-});
-
-usersGroup.MapPost("/{id:guid}/groups", async (Guid id, Guid groupId, IAppUserRepository userRepo, IGroupRepository groupRepo) =>
-{
-    var user = await userRepo.GetByIdAsync(id);
-    if (user is null) return Results.NotFound();
-    if (user.IsRoot) return Results.BadRequest(new { error = "Cannot modify root user." });
-
-    var group = await groupRepo.GetByIdAsync(groupId);
-    if (group is null) return Results.NotFound();
-
-    if (!user.Groups.Any(g => g.Id == groupId))
-    {
-        user.Groups.Add(group);
-        await userRepo.UpdateAsync(user);
-    }
-    return Results.Ok(new { user.Id, Groups = user.Groups.Select(g => g.Name).ToList() });
-});
-
-usersGroup.MapDelete("/{id:guid}/groups/{groupId:guid}", async (Guid id, Guid groupId, IAppUserRepository userRepo) =>
-{
-    var user = await userRepo.GetByIdAsync(id);
-    if (user is null) return Results.NotFound();
-    if (user.IsRoot) return Results.BadRequest(new { error = "Cannot modify root user." });
-
-    var group = user.Groups.FirstOrDefault(g => g.Id == groupId);
-    if (group is not null)
-    {
-        user.Groups.Remove(group);
-        await userRepo.UpdateAsync(user);
-    }
-    return Results.Ok(new { user.Id, Groups = user.Groups.Select(g => g.Name).ToList() });
-});
-
-usersGroup.MapDelete("/{id:guid}", async (Guid id, IAppUserRepository repo) =>
-{
-    var user = await repo.GetByIdAsync(id);
-    if (user is null) return Results.NotFound();
-    if (user.IsRoot) return Results.BadRequest(new { error = "Cannot delete root user." });
-    await repo.DeleteAsync(user);
-    return Results.NoContent();
-});
-
-// ============================================================
-// SYSTEM SETTINGS ENDPOINTS (Root only)
-// ============================================================
-var settingsGroup = app.MapGroup("/api/admin/settings").RequireAuthorization("RootPolicy");
-
-settingsGroup.MapGet("/", async (ISystemSettingRepository repo) =>
-{
-    var settings = await repo.GetAllAsync();
-    return Results.Ok(settings.Select(s => new { s.Key, s.Value, s.UpdatedAt }));
-});
-
-settingsGroup.MapPut("/{key}", async (string key, UpdateSettingRequest request, ISystemSettingRepository repo) =>
-{
-    await repo.SetAsync(new SystemSetting { Key = key, Value = request.Value });
-    return Results.Ok(new { key, request.Value });
-});
-
 app.Run();
-
-// ============================================================
-// HELPERS
-// ============================================================
-static string? ResolveOAuthScheme(string provider) => provider.ToLower() switch
-{
-    "google" => "Google",
-    "github" => "GitHub",
-    "microsoft" => "Microsoft",
-    _ => null
-};
-
-static async Task SignInWithCookie(HttpContext ctx, AuthResponse response)
-{
-    var claims = new List<Claim>
-    {
-        new(ClaimTypes.NameIdentifier, response.UserId.ToString()),
-        new(ClaimTypes.Name, response.UserName),
-        new("is_root", response.IsRoot.ToString().ToLower())
-    };
-    if (response.Email is not null) claims.Add(new(ClaimTypes.Email, response.Email));
-    claims.AddRange(response.Groups.Select(g => new Claim("groups", g)));
-
-    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-    await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-}
-
-static object MapPost(Post p) => new
-{
-    p.Id, p.Title, p.Content, p.AuthorId, p.IsPublished, p.CreatedAt, p.UpdatedAt, p.PublishedAt,
-    Author = p.Author is not null ? new { p.Author.Id, p.Author.UserName } : null,
-    LikeCount = 0,
-    DislikeCount = 0
-};
-
-static object MapComment(Comment c) => new
-{
-    c.Id, c.Content, c.PostId, c.UserId, c.ParentCommentId, c.GuestName, c.IsApproved, c.CreatedAt,
-    User = c.User is not null ? new { c.User.Id, c.User.UserName } : null,
-    Replies = c.Replies.Select(MapComment)
-};
-
-// ============================================================
-// DTOs
-// ============================================================
-public record UpdateSettingRequest(string Value);

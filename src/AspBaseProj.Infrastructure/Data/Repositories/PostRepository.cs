@@ -6,9 +6,16 @@ namespace AspBaseProj.Infrastructure.Data.Repositories;
 
 public class PostRepository(BlogDbContext db) : IPostRepository
 {
-    public async Task<Post?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        await db.Posts.Include(p => p.Author).Include(p => p.Media)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
+    public async Task<Post?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var post = await db.Posts.FindAsync(new object[] { id }, ct);
+        if (post is not null)
+        {
+            await db.Entry(post).Reference(p => p.Author).LoadAsync(ct);
+            await db.Entry(post).Collection(p => p.Media).LoadAsync(ct);
+        }
+        return post;
+    }
 
     public async Task<(List<Post> Posts, int TotalCount)> GetPublishedAsync(int page, int pageSize, CancellationToken ct = default)
     {

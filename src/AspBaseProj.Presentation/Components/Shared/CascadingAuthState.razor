@@ -1,0 +1,28 @@
+@* CascadingAuthState.razor *@
+@inject ApiClient Api
+
+<CascadingValue Value="this" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    public AuthUserInfo? UserInfo { get; private set; }
+    public bool IsAuthenticated => UserInfo is not null;
+    public bool IsRoot => UserInfo?.IsRoot ?? false;
+    public bool IsAdmin => UserInfo?.Groups.Contains("Admin") ?? false;
+    public bool IsAuthor => UserInfo?.Groups.Contains("Author") ?? false;
+    public string? UserName => UserInfo?.UserName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        UserInfo = await Api.GetCurrentUserAsync();
+    }
+
+    public async Task RefreshAsync()
+    {
+        UserInfo = await Api.GetCurrentUserAsync();
+        StateHasChanged();
+    }
+}

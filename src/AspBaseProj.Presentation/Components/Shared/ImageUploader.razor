@@ -1,0 +1,146 @@
+@* ImageUploader.razor *@
+@inject ApiClient Api
+
+@if (PostId != Guid.Empty)
+{
+    <div class="card shadow-sm mt-3">
+        <div class="card-header">
+            <h6 class="mb-0">@L["Images_Title"]</h6>
+        </div>
+        <div class="card-body">
+            @* Upload Form *@
+            <div class="mb-3">
+                <label class="form-label">@L["Images_Upload"]</label>
+                <div class="input-group">
+                    <InputFile OnChange="OnFileSelected" accept=".jpg,.jpeg,.png,.gif,.webp"
+                               class="form-control" />
+                    <button class="btn btn-primary" @onclick="UploadAsync"
+                            disabled="@(selectedFile is null || isUploading)">
+                        @(isUploading ? L["Images_Uploading"] : L["Images_UploadButton"])
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(uploadError))
+                {
+                    <div class="text-danger small mt-1">@uploadError</div>
+                }
+            </div>
+
+            @* Uploaded Images List *@
+            @if (images is null)
+            {
+                <p class="text-muted small">@L["Images_Loading"]</p>
+            }
+            else if (images.Count == 0)
+            {
+                <p class="text-muted small">@L["Images_None"]</p>
+            }
+            else
+            {
+                <div class="row g-2">
+                    @foreach (var img in images)
+                    {
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card">
+                                <img src="/api/media/@img.Id/data" class="card-img-top"
+                                     alt="@img.FileName" style="height: 120px; object-fit: cover;" />
+                                <div class="card-body p-2">
+                                    <small class="text-muted d-block text-truncate">@img.FileName</small>
+                                    <button class="btn btn-sm btn-outline-danger mt-1"
+                                            @onclick='async () => await DeleteImage(img.Id)'>
+                                        🗑️
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary mt-1"
+                                            @onclick='() => CopyMarkdown(img.Id, img.FileName)'>
+                                        @L["Images_CopyMarkdown"]
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid PostId { get; set; }
+    [Parameter] public EventCallback<string> OnImageMarkdown { get; set; }
+
+    private List<ApiClient.MediaInfo>? images;
+    private IBrowserFile? selectedFile;
+    private bool isUploading;
+    private string? uploadError;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (PostId != Guid.Empty)
+        {
+            await LoadImagesAsync();
+        }
+    }
+
+    private async Task LoadImagesAsync()
+    {
+        images = await Api.GetMediaAsync(PostId);
+    }
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        uploadError = null;
+    }
+
+    private async Task UploadAsync()
+    {
+        if (selectedFile is null || PostId == Guid.Empty) return;
+        isUploading = true;
+        uploadError = null;
+
+        try
+        {
+            using var stream = new MemoryStream();
+            await selectedFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).CopyToAsync(stream);
+            var data = stream.ToArray();
+
+            var result = await Api.UploadMediaAsync(
+                PostId,
+                selectedFile.Name,
+                selectedFile.ContentType,
+                data);
+
+            if (result is not null)
+            {
+                selectedFile = null;
+                await LoadImagesAsync();
+            }
+            else
+            {
+                uploadError = L["Images_FailedUpload"];
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadError = ex.Message;
+        }
+        finally
+        {
+            isUploading = false;
+        }
+    }
+
+    private async Task DeleteImage(Guid mediaId)
+    {
+        var success = await Api.DeleteMediaAsync(mediaId);
+        if (success)
+        {
+            await LoadImagesAsync();
+        }
+    }
+
+    private void CopyMarkdown(Guid mediaId, string fileName)
+    {
+        var markdown = $"![{fileName}](/api/media/{mediaId}/data)";
+        OnImageMarkdown.InvokeAsync(markdown);
+    }
+}

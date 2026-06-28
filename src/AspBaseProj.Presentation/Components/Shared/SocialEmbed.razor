@@ -1,0 +1,101 @@
+@* SocialEmbed.razor *@
+@using System.Text.RegularExpressions
+
+@* Rendert erkannte Social-Media/Video-URLs als eingebettete Karten *@
+@if (Embeds.Count > 0)
+{
+    <div class="social-embeds mt-3">
+        @foreach (var embed in Embeds)
+        {
+            <div class="card shadow-sm mb-2 social-embed-card">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="social-embed-icon fs-2">
+                        @GetIcon(embed.Type)
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">@embed.Title</h6>
+                        <small class="text-muted">@embed.Url</small>
+                    </div>
+                    <a href="@embed.Url" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-sm btn-outline-primary">
+                        @L["Social_Open"]
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Content { get; set; } = "";
+
+    private List<EmbedInfo> Embeds => ExtractEmbeds(Content);
+
+    private List<EmbedInfo> ExtractEmbeds(string content)
+    {
+        var embeds = new List<EmbedInfo>();
+        if (string.IsNullOrEmpty(content)) return embeds;
+
+        // YouTube
+        var youtubeRegex = new Regex(@"(https?://)?(www\.)?(youtube\.com/watch\?v=|youtu\.be/|youtube\.com/embed/)([a-zA-Z0-9_-]+)");
+        foreach (Match match in youtubeRegex.Matches(content))
+        {
+            var videoId = match.Groups[4].Value;
+            embeds.Add(new EmbedInfo(
+                match.Value,
+                L["Social_YouTube"],
+                EmbedType.YouTube,
+                $"https://www.youtube.com/embed/{videoId}"));
+        }
+
+        // Vimeo
+        var vimeoRegex = new Regex(@"(https?://)?(www\.)?vimeo\.com/(\d+)");
+        foreach (Match match in vimeoRegex.Matches(content))
+        {
+            embeds.Add(new EmbedInfo(
+                match.Value,
+                L["Social_Vimeo"],
+                EmbedType.Vimeo,
+                $"https://player.vimeo.com/video/{match.Groups[3].Value}"));
+        }
+
+        // Twitter/X
+        var twitterRegex = new Regex(@"(https?://)?(www\.)?(twitter\.com|x\.com)/\w+/status/\d+");
+        foreach (Match match in twitterRegex.Matches(content))
+        {
+            embeds.Add(new EmbedInfo(
+                match.Value,
+                L["Social_Twitter"],
+                EmbedType.Twitter,
+                match.Value));
+        }
+
+        // Generic URL (fallback)
+        var urlRegex = new Regex(@"(https?://[^\s<>""']+)");
+        var knownUrls = embeds.Select(e => e.Url).ToHashSet();
+        foreach (Match match in urlRegex.Matches(content))
+        {
+            if (!knownUrls.Contains(match.Value))
+            {
+                embeds.Add(new EmbedInfo(
+                    match.Value,
+                    L["Social_ExternalLink"],
+                    EmbedType.Link,
+                    match.Value));
+            }
+        }
+
+        return embeds;
+    }
+
+    private static string GetIcon(EmbedType type) => type switch
+    {
+        EmbedType.YouTube => "▶️",
+        EmbedType.Vimeo => "🎬",
+        EmbedType.Twitter => "𝕏",
+        _ => "🔗"
+    };
+
+    public record EmbedInfo(string Url, string Title, EmbedType Type, string EmbedUrl);
+    public enum EmbedType { YouTube, Vimeo, Twitter, Link }
+}

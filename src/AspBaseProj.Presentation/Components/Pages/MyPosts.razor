@@ -3,59 +3,56 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
-<PageTitle>My Posts</PageTitle>
+<PageTitle>@L["Nav_MyPosts"]</PageTitle>
 
-<h2 class="mb-4">📋 My Posts</h2>
+<h2 class="mb-4">📋 @L["MyPosts_Title"]</h2>
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
     <div class="btn-group" role="group">
         <button class="btn @(filter == "all" ? "btn-primary" : "btn-outline-primary")"
                 @onclick='async () => await ApplyFilter("all")'>
-            All
+            @L["MyPosts_All"]
         </button>
         <button class="btn @(filter == "published" ? "btn-primary" : "btn-outline-primary")"
                 @onclick='async () => await ApplyFilter("published")'>
-            ✅ Published
+            ✅ @L["MyPosts_Published"]
         </button>
         <button class="btn @(filter == "drafts" ? "btn-primary" : "btn-outline-primary")"
                 @onclick='async () => await ApplyFilter("drafts")'>
-            📝 Drafts
+            📝 @L["MyPosts_Drafts"]
         </button>
         <button class="btn @(filter == "bookmarks" ? "btn-primary" : "btn-outline-primary")"
                 @onclick='async () => await ApplyFilter("bookmarks")'>
-            🔖 Bookmarks
+            🔖 @L["MyPosts_Bookmarks"]
         </button>
     </div>
-    <a href="/posts/new" class="btn btn-success">✏️ New Post</a>
+    <a href="/posts/new" class="btn btn-success">✏️ @L["MyPosts_NewPost"]</a>
 </div>
 
-@if (error is not null)
-{
-    <div class="alert alert-danger">@error</div>
-}
+<AlertMessage @bind-Message="error" Type="AlertMessage.AlertType.Danger" />
+<AlertMessage @bind-Message="successMessage" Type="AlertMessage.AlertType.Success" />
 
-@if (successMessage is not null)
+@if (allPosts is null && filter != "bookmarks")
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @successMessage
-        <button type="button" class="btn-close" @onclick='() => successMessage = null'></button>
-    </div>
+    <p>@L["Common_Loading"]</p>
 }
-
-@if (allPosts is null)
+else if (bookmarkedPosts is null && filter == "bookmarks")
 {
-    <p>Loading...</p>
+    <p>@L["Common_Loading"]</p>
 }
-else if (filteredPosts.Count == 0)
+else if (filteredPosts.Count == 0 && filter != "bookmarks")
 {
     <div class="text-center py-5">
         <h4 class="text-muted">
-            @(filter == "drafts" ? "No drafts." : filter == "published" ? "No published posts." : filter == "bookmarks" ? "No bookmarked posts." : "No posts yet.")
+            @(filter == "drafts" ? L["MyPosts_NoDrafts"] : filter == "published" ? L["MyPosts_NoPublished"] : L["MyPosts_NoPosts"])
         </h4>
-        @if (filter != "bookmarks")
-        {
-            <a href="/posts/new" class="btn btn-primary mt-2">Write your first post</a>
-        }
+        <a href="/posts/new" class="btn btn-primary mt-2">@L["Home_WriteFirstPost"]</a>
+    </div>
+}
+else if (bookmarkedPosts?.Count == 0 && filter == "bookmarks")
+{
+    <div class="text-center py-5">
+        <h4 class="text-muted">@L["MyPosts_NoBookmarks"]</h4>
     </div>
 }
 else if (filter == "bookmarks" && bookmarkedPosts is not null)
@@ -66,12 +63,12 @@ else if (filter == "bookmarks" && bookmarkedPosts is not null)
             <table class="table table-hover align-middle shadow-sm">
                 <thead class="table-dark">
                     <tr>
-                        <th>Title</th>
-                        <th>Author</th>
+                        <th>@L["MyPosts_ColTitle"]</th>
+                        <th>@L["MyPosts_ColAuthor"]</th>
                         <th class="text-center">👍</th>
                         <th class="text-center">👎</th>
                         <th class="text-center">💬</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-end">@L["MyPosts_ColActions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -99,7 +96,7 @@ else if (filter == "bookmarks" && bookmarkedPosts is not null)
                                 }
                             </td>
                             <td class="text-end">
-                                <Button Color="Color.Primary" Size="Size.Small" OnClick='() => GoToPost(post.Id)'>View</Button>
+                                <Button Color="Color.Primary" Size="Size.Small" OnClick='() => GoToPost(post.Id)'>@L["Common_View"]</Button>
                             </td>
                         </tr>
                     }
@@ -125,7 +122,7 @@ else if (filter == "bookmarks" && bookmarkedPosts is not null)
                             <p class="card-text text-muted small mb-2">@Truncate(post.Content, 100)</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <span class="text-muted small">by @post.AuthorName</span>
+                                    <span class="text-muted small">@L["PostList_By"] @post.AuthorName</span>
                                     <span class="ms-2">👍 @post.LikeCount</span>
                                     <span class="ms-1">👎 @post.DislikeCount</span>
                                     @if (post.CommentCount > 0)
@@ -133,7 +130,7 @@ else if (filter == "bookmarks" && bookmarkedPosts is not null)
                                         <span class="badge bg-info ms-2">💬 @post.CommentCount</span>
                                     }
                                 </div>
-                                <Button Color="Color.Primary" Size="Size.Small" OnClick='() => GoToPost(post.Id)'>View</Button>
+                                <Button Color="Color.Primary" Size="Size.Small" OnClick='() => GoToPost(post.Id)'>@L["Common_View"]</Button>
                             </div>
                         </div>
                     </div>
@@ -150,11 +147,11 @@ else
             <table class="table table-hover align-middle shadow-sm">
                 <thead class="table-dark">
                     <tr>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th class="text-center">💬 Comments</th>
-                        <th>Created</th>
-                        <th class="text-end">Actions</th>
+                        <th>@L["MyPosts_ColTitle"]</th>
+                        <th>@L["MyPosts_ColStatus"]</th>
+                        <th class="text-center">@L["MyPosts_ColComments"]</th>
+                        <th>@L["MyPosts_ColCreated"]</th>
+                        <th class="text-end">@L["MyPosts_ColActions"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -171,11 +168,11 @@ else
                             <td>
                                 @if (post.IsPublished)
                                 {
-                                    <Badge Color="Color.Success">Published</Badge>
+                                    <Badge Color="Color.Success">@L["MyPosts_BadgePublished"]</Badge>
                                 }
                                 else
                                 {
-                                    <Badge Color="Color.Warning">Draft</Badge>
+                                    <Badge Color="Color.Warning">@L["MyPosts_BadgeDraft"]</Badge>
                                 }
                             </td>
                             <td class="text-center">
@@ -194,16 +191,16 @@ else
                             <td class="text-muted small">@post.CreatedAt.ToString("d")</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <Button Color="Color.Primary" OnClick='() => EditPost(post.Id)' Tooltip="Edit">
+                                    <Button Color="Color.Primary" OnClick='() => EditPost(post.Id)' Tooltip="@L["MyPosts_TooltipEdit"]">
                                         ✏️
                                     </Button>
                                     @if (!post.IsPublished)
                                     {
-                                        <Button Color="Color.Success" OnClick='async () => await PublishPost(post.Id)' Tooltip="Publish">
+                                        <Button Color="Color.Success" OnClick='async () => await PublishPost(post.Id)' Tooltip="@L["MyPosts_TooltipPublish"]">
                                             ✅
                                         </Button>
                                     }
-                                    <Button Color="Color.Danger" OnClick='() => ConfirmDelete(post.Id, post.Title)' Tooltip="Delete">
+                                    <Button Color="Color.Danger" OnClick='() => ConfirmDelete(post.Id, post.Title)' Tooltip="@L["MyPosts_TooltipDelete"]">
                                         🗑️
                                     </Button>
                                 </div>
@@ -232,11 +229,11 @@ else
                                 </h6>
                                 @if (post.IsPublished)
                                 {
-                                    <Badge Color="Color.Success">Published</Badge>
+                                    <Badge Color="Color.Success">@L["MyPosts_BadgePublished"]</Badge>
                                 }
                                 else
                                 {
-                                    <Badge Color="Color.Warning">Draft</Badge>
+                                    <Badge Color="Color.Warning">@L["MyPosts_BadgeDraft"]</Badge>
                                 }
                             </div>
                             <p class="card-text text-muted small mb-2">@Truncate(post.Content, 100)</p>
@@ -265,53 +262,16 @@ else
     </div>
 
     @* Pagination *@
-    @if (totalPages > 1)
-    {
-        <div class="d-flex justify-content-center mt-4">
-            <nav>
-                <ul class="pagination">
-                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
-                        <button class="page-link" @onclick='async () => await LoadPage(currentPage - 1)'>«</button>
-                    </li>
-                    @for (int i = 1; i <= totalPages; i++)
-                    {
-                        <li class="page-item @(i == currentPage ? "active" : "")">
-                            <button class="page-link" @onclick='async () => await LoadPage(i)'>@i</button>
-                        </li>
-                    }
-                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
-                        <button class="page-link" @onclick='async () => await LoadPage(currentPage + 1)'>»</button>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-    }
+    <Pager CurrentPage="currentPage" TotalPages="totalPages" OnPageChanged="LoadPage" />
 }
 
 @* Delete Confirmation Modal *@
-@if (deleteTarget is not null)
-{
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Delete Post</h5>
-                    <button type="button" class="btn-close" @onclick='() => deleteTarget = null'></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete <strong>"@deleteTitle"</strong>?</p>
-                    <p class="text-danger small mb-0">This action cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <Button Color="Color.Secondary" OnClick='() => deleteTarget = null'>Cancel</Button>
-                    <Button Color="Color.Danger" OnClick="ExecuteDelete" IsDisabled="isDeleting">
-                        @(isDeleting ? "Deleting..." : "Delete")
-                    </Button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+<DeleteConfirmModal IsVisible="deleteTarget is not null"
+                    Title="@L["MyPosts_DeleteTitle"]"
+                    Message="@L["MyPosts_DeleteMessage", deleteTitle]"
+                    IsDisabled="isDeleting"
+                    OnConfirm="ExecuteDelete"
+                    OnCancel='() => deleteTarget = null' />
 
 @code {
     private List<MyPostDto>? allPosts;
@@ -340,34 +300,41 @@ else
     private async Task LoadPage(int page)
     {
         error = null;
-        if (filter == "bookmarks")
+        try
         {
-            var result = await Api.GetBookmarkedPostsAsync(page, 10);
-            if (result is not null)
+            if (filter == "bookmarks")
             {
-                bookmarkedPosts = result.Posts;
-                currentPage = result.Page;
-                totalPages = (int)Math.Ceiling(result.Total / (double)10);
+                var result = await Api.GetBookmarkedPostsAsync(page, 10);
+                if (result is not null)
+                {
+                    bookmarkedPosts = result.Posts;
+                    currentPage = result.Page;
+                    totalPages = (int)Math.Ceiling(result.Total / (double)10);
+                }
+                else
+                {
+                    error = L["MyPosts_FailedLoadBookmarks"];
+                }
             }
             else
             {
-                error = "Failed to load bookmarks.";
+                var result = await Api.GetMyPostsAsync(page, 10);
+                if (result is not null)
+                {
+                    allPosts = result.Posts;
+                    currentPage = result.Page;
+                    totalPages = (int)Math.Ceiling(result.Total / (double)10);
+                    ApplyFilterLocal();
+                }
+                else
+                {
+                    error = L["MyPosts_FailedLoad"];
+                }
             }
         }
-        else
+        catch (Exception ex)
         {
-            var result = await Api.GetMyPostsAsync(page, 10);
-            if (result is not null)
-            {
-                allPosts = result.Posts;
-                currentPage = result.Page;
-                totalPages = (int)Math.Ceiling(result.Total / (double)10);
-                ApplyFilterLocal();
-            }
-            else
-            {
-                error = "Failed to load posts.";
-            }
+            error = L["Common_SomethingWentWrong", ex.Message];
         }
     }
 
@@ -405,20 +372,26 @@ else
     private async Task PublishPost(Guid id)
     {
         error = null;
-        // Get the full post, set IsPublished = true, update
-        var post = await Api.GetPostAsync(id);
-        if (post is null) { error = "Post not found."; return; }
+        try
+        {
+            var post = await Api.GetPostAsync(id);
+            if (post is null) { error = L["MyPosts_PostNotFound"]; return; }
 
-        var updated = post with { IsPublished = true };
-        var result = await Api.UpdatePostAsync(id, updated);
-        if (result is not null)
-        {
-            successMessage = "Post published successfully!";
-            await LoadPage(currentPage);
+            var updated = post with { IsPublished = true };
+            var result = await Api.UpdatePostAsync(id, updated);
+            if (result is not null)
+            {
+                successMessage = L["MyPosts_PublishedSuccess"];
+                await LoadPage(currentPage);
+            }
+            else
+            {
+                error = L["MyPosts_FailedPublish"];
+            }
         }
-        else
+        catch (Exception ex)
         {
-            error = "Failed to publish post.";
+            error = L["Common_SomethingWentWrong", ex.Message];
         }
     }
 
@@ -432,18 +405,29 @@ else
     {
         if (deleteTarget is null) return;
         isDeleting = true;
-        var success = await Api.DeletePostAsync(deleteTarget.Value);
-        isDeleting = false;
-        deleteTarget = null;
+        error = null;
+        try
+        {
+            var success = await Api.DeletePostAsync(deleteTarget.Value);
+            deleteTarget = null;
 
-        if (success)
-        {
-            successMessage = "Post deleted.";
-            await LoadPage(currentPage);
+            if (success)
+            {
+                successMessage = L["MyPosts_DeletedSuccess"];
+                await LoadPage(currentPage);
+            }
+            else
+            {
+                error = L["MyPosts_FailedDelete"];
+            }
         }
-        else
+        catch (Exception ex)
         {
-            error = "Failed to delete post.";
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
+        finally
+        {
+            isDeleting = false;
         }
     }
 

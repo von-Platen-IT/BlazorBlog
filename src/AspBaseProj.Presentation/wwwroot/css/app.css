@@ -1,31 +1,151 @@
-.cursor-pointer { cursor: pointer; }
-.post-content { line-height: 1.8; font-size: 1.1rem; }
-.post-content p { margin-bottom: 1rem; }
+/* Markdown content styles */
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.post-content h1 { font-size: 2rem; }
+.post-content h2 { font-size: 1.6rem; }
+.post-content h3 { font-size: 1.3rem; }
+
+.post-content p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+.post-content ul,
+.post-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.post-content li {
+    margin-bottom: 0.25rem;
+}
+
+.post-content blockquote {
+    border-left: 4px solid #dee2e6;
+    padding-left: 1rem;
+    margin-left: 0;
+    margin-right: 0;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.post-content pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.post-content code {
+    background-color: #f8f9fa;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+.post-content pre code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.post-content a {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+.post-content table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+
+.post-content th,
+.post-content td {
+    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.post-content th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.post-content hr {
+    margin: 2rem 0;
+}
+
+/* Cursor pointer for post cards */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.post-content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.post-content p {
+    margin-bottom: 1rem;
+}
 
 /* ============================================================
    Comment Tree Lines
    ============================================================ */
 
-/* Thread container: provides the vertical line for nested comments */
+/* Thread container: provides the structure for tree-line rendering */
 .comment-thread {
     position: relative;
+    padding-left: 1rem;
 }
 
+/* Nested comments: show tree-lines with border-left + corner connector */
 .comment-thread--nested {
-    padding-left: 28px;
-    margin-left: 12px;
+    padding-left: 1.5rem;
+    margin-left: 0.5rem;
+    border-left: 2px solid #e9ecef;
 }
 
-/* Vertical line connecting nested comments to their parent */
+/* Corner connector: L-shaped line from the vertical line to the comment node */
 .comment-thread--nested::before {
     content: '';
     position: absolute;
-    left: 10px;
-    top: -8px;
-    bottom: 0;
-    width: 2px;
-    background: #dee2e6;
-    border-radius: 1px;
+    left: -2px;
+    top: 0;
+    width: 12px;
+    height: 20px;
+    border-bottom: 2px solid #e9ecef;
+    border-left: 2px solid #e9ecef;
+    border-bottom-left-radius: 8px;
+}
+
+/* Last child in the chain: hide the vertical line continuation */
+.comment-thread--nested:last-child {
+    border-left-color: transparent;
+}
+
+/* Last child still shows the corner connector */
+.comment-thread--nested:last-child::before {
+    border-left-color: #e9ecef;
 }
 
 /* Comment node card */
@@ -43,16 +163,23 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-/* Horizontal connector line from vertical line to comment node */
-.comment-thread--nested .comment-node::before {
-    content: '';
-    position: absolute;
-    left: -18px;
-    top: 22px;
-    width: 18px;
-    height: 2px;
-    background: #dee2e6;
-    border-radius: 1px;
+/* Hover effect on tree-lines for better readability */
+.comment-node:hover > .comment-thread--nested {
+    border-left-color: #adb5bd;
+}
+
+.comment-node:hover > .comment-thread--nested::before {
+    border-left-color: #adb5bd;
+    border-bottom-color: #adb5bd;
+}
+
+/* Depth-based alternating background for readability */
+.comment-thread--nested:nth-child(odd) > .comment-node {
+    background-color: #fafafa;
+}
+
+.comment-thread--nested:nth-child(even) > .comment-node {
+    background-color: #ffffff;
 }
 
 /* Reply form inside comment */
@@ -62,18 +189,14 @@
 }
 
 /* Mobile: reduce indentation */
-@media (max-width: 767.98px) {
+@media (max-width: 576px) {
     .comment-thread--nested {
-        padding-left: 18px;
-        margin-left: 6px;
+        padding-left: 1rem;
+        margin-left: 0.25rem;
     }
 
     .comment-thread--nested::before {
-        left: 6px;
-    }
-
-    .comment-thread--nested .comment-node::before {
-        left: -12px;
-        width: 12px;
+        width: 8px;
+        height: 16px;
     }
 }

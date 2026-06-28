@@ -1,5 +1,6 @@
 using AspBaseProj.Application.Auth;
 using AspBaseProj.Application.Common;
+using AspBaseProj.Application.Contracts.Auth;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AspBaseProj.Application;

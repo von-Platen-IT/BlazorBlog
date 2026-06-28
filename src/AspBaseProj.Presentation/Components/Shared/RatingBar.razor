@@ -1,0 +1,34 @@
+@* RatingBar.razor *@
+<div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded shadow-sm">
+    <button class="btn @(UserRating == "like" ? "btn-primary" : "btn-outline-primary") btn-sm"
+            @onclick="OnLike" title="Like"
+            disabled="@(!IsAuthenticated)">
+        👍 <span class="ms-1">@LikeCount</span>
+    </button>
+    <button class="btn @(UserRating == "dislike" ? "btn-danger" : "btn-outline-danger") btn-sm"
+            @onclick="OnDislike" title="Dislike"
+            disabled="@(!IsAuthenticated)">
+        👎 <span class="ms-1">@DislikeCount</span>
+    </button>
+    @if (!IsAuthenticated)
+    {
+        <small class="text-muted ms-2"><a href="/login">@L["PostDetail_LoginToRate"]</a></small>
+    }
+    <div class="ms-auto">
+        <BookmarkButton IsBookmarked="IsBookmarked"
+                        IsAuthenticated="IsAuthenticated"
+                        OnToggleBookmark="OnToggleBookmark" />
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid PostId { get; set; }
+    [Parameter] public int LikeCount { get; set; }
+    [Parameter] public int DislikeCount { get; set; }
+    [Parameter] public string? UserRating { get; set; }
+    [Parameter] public bool IsAuthenticated { get; set; }
+    [Parameter] public bool IsBookmarked { get; set; }
+    [Parameter] public EventCallback OnLike { get; set; }
+    [Parameter] public EventCallback OnDislike { get; set; }
+    [Parameter] public EventCallback OnToggleBookmark { get; set; }
+}

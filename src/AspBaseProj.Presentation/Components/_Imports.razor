@@ -1,12 +1,24 @@
 @using System.Net.Http
+@using System.Globalization
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.Extensions.Localization
+@using Microsoft.JSInterop
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @using BootstrapBlazor.Components
 @using AspBaseProj.Presentation.Components
 @using AspBaseProj.Presentation.Components.Layout
 @using AspBaseProj.Presentation.Components.Pages
 @using AspBaseProj.Presentation.Components.Shared
+@using AspBaseProj.Presentation.Resources
+@using AspBaseProj.Application.Contracts.Auth
+@using AspBaseProj.Application.Contracts.Posts
+@using AspBaseProj.Application.Contracts.Comments
+@using AspBaseProj.Application.Contracts.Ratings
+@using AspBaseProj.Application.Contracts.Bookmarks
+@using AspBaseProj.Application.Contracts.Users
+@using AspBaseProj.Application.Contracts.Settings
+@inject IStringLocalizer<SharedResource> L

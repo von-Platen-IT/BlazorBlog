@@ -2,29 +2,32 @@
 @rendermode InteractiveServer
 @inject ApiClient Api
 
-<PageTitle>Moderation Queue</PageTitle>
+<PageTitle>@L["Nav_Moderation"]</PageTitle>
 
-<h2 class="mb-4">✅ Moderation Queue</h2>
+<h2 class="mb-4">✅ @L["Mod_Title"]</h2>
+
+<AlertMessage @bind-Message="error" Type="AlertMessage.AlertType.Danger" />
+<AlertMessage @bind-Message="successMessage" Type="AlertMessage.AlertType.Success" />
 
 @if (comments is null)
 {
-    <p>Loading...</p>
+    <p>@L["Common_Loading"]</p>
 }
 else if (comments.Count == 0)
 {
     <div class="text-center py-5">
-        <h4 class="text-muted">No pending comments.</h4>
-        <p class="text-secondary">All comments have been reviewed.</p>
+        <h4 class="text-muted">@L["Mod_NoPending"]</h4>
+        <p class="text-secondary">@L["Mod_AllReviewed"]</p>
     </div>
 }
 else
 {
     <div class="mb-3 d-flex gap-2">
         <Button Color="Color.Success" OnClick="BulkApprove" IsDisabled="selectedIds.Count == 0">
-            ✅ Approve Selected (@selectedIds.Count)
+            @L["Mod_ApproveSelected", selectedIds.Count]
         </Button>
         <Button Color="Color.Danger" OnClick="BulkReject" IsDisabled="selectedIds.Count == 0">
-            ❌ Reject Selected (@selectedIds.Count)
+            @L["Mod_RejectSelected", selectedIds.Count]
         </Button>
     </div>
 
@@ -33,10 +36,10 @@ else
             <thead>
                 <tr>
                     <th style="width:40px"><input type="checkbox" @onchange="ToggleAll" /></th>
-                    <th>Author</th>
-                    <th>Content</th>
-                    <th>Date</th>
-                    <th style="width:180px">Actions</th>
+                    <th>@L["Mod_ColAuthor"]</th>
+                    <th>@L["Mod_ColContent"]</th>
+                    <th>@L["Mod_ColDate"]</th>
+                    <th style="width:180px">@L["Mod_ColActions"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,12 +50,12 @@ else
                             <input type="checkbox" checked="@selectedIds.Contains(c.Id)"
                                    @onchange="() => ToggleSelect(c.Id)" />
                         </td>
-                        <td>@(c.GuestName ?? "Guest")</td>
+                        <td>@(c.GuestName ?? L["Common_Guest"])</td>
                         <td>@c.Content</td>
                         <td class="text-nowrap small">@c.CreatedAt.ToString("g")</td>
                         <td>
-                            <Button Color="Color.Success" Size="Size.Small" OnClick="() => Approve(c.Id)">Approve</Button>
-                            <Button Color="Color.Danger" Size="Size.Small" OnClick="() => Reject(c.Id)">Reject</Button>
+                            <Button Color="Color.Success" Size="Size.Small" OnClick="() => Approve(c.Id)">@L["Mod_Approve"]</Button>
+                            <Button Color="Color.Danger" Size="Size.Small" OnClick="() => Reject(c.Id)">@L["Mod_Reject"]</Button>
                         </td>
                     </tr>
                 }
@@ -64,10 +67,19 @@ else
 @code {
     private List<CommentDto>? comments;
     private HashSet<Guid> selectedIds = [];
+    private string? error;
+    private string? successMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        comments = await Api.GetPendingCommentsAsync();
+        try
+        {
+            comments = await Api.GetPendingCommentsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private void ToggleSelect(Guid id)
@@ -86,27 +98,63 @@ else
 
     private async Task Approve(Guid id)
     {
-        await Api.ApproveCommentAsync(id);
-        comments = await Api.GetPendingCommentsAsync();
+        error = null;
+        try
+        {
+            await Api.ApproveCommentAsync(id);
+            successMessage = L["Mod_Approved"];
+            comments = await Api.GetPendingCommentsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task Reject(Guid id)
     {
-        await Api.RejectCommentAsync(id);
-        comments = await Api.GetPendingCommentsAsync();
+        error = null;
+        try
+        {
+            await Api.RejectCommentAsync(id);
+            successMessage = L["Mod_Rejected"];
+            comments = await Api.GetPendingCommentsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task BulkApprove()
     {
-        await Api.BulkApproveAsync(selectedIds.ToList());
-        selectedIds.Clear();
-        comments = await Api.GetPendingCommentsAsync();
+        error = null;
+        try
+        {
+            await Api.BulkApproveAsync(selectedIds.ToList());
+            successMessage = L["Mod_BulkApproved", selectedIds.Count];
+            selectedIds.Clear();
+            comments = await Api.GetPendingCommentsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task BulkReject()
     {
-        await Api.BulkRejectAsync(selectedIds.ToList());
-        selectedIds.Clear();
-        comments = await Api.GetPendingCommentsAsync();
+        error = null;
+        try
+        {
+            await Api.BulkRejectAsync(selectedIds.ToList());
+            successMessage = L["Mod_BulkRejected", selectedIds.Count];
+            selectedIds.Clear();
+            comments = await Api.GetPendingCommentsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 }

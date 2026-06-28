@@ -1,0 +1,41 @@
+@* AlertMessage.razor *@
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert alert-@TypeClass alert-dismissible fade show" role="alert">
+        @if (!string.IsNullOrEmpty(Icon))
+        {
+            <span class="me-2">@Icon</span>
+        }
+        @Message
+        @if (Dismissible)
+        {
+            <button type="button" class="btn-close" @onclick='() => Message = ""'
+                    @onclick:stopPropagation></button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Message { get; set; } = "";
+    [Parameter] public EventCallback<string> MessageChanged { get; set; }
+    [Parameter] public AlertType Type { get; set; } = AlertType.Danger;
+    [Parameter] public bool Dismissible { get; set; } = true;
+
+    private string TypeClass => Type switch
+    {
+        AlertType.Success => "success",
+        AlertType.Warning => "warning",
+        AlertType.Info => "info",
+        _ => "danger"
+    };
+
+    private string Icon => Type switch
+    {
+        AlertType.Success => "✅",
+        AlertType.Warning => "⚠️",
+        AlertType.Info => "ℹ️",
+        _ => "❌"
+    };
+
+    public enum AlertType { Danger, Success, Warning, Info }
+}

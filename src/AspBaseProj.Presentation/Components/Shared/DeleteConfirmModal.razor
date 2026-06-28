@@ -1,0 +1,33 @@
+@* DeleteConfirmModal.razor *@
+@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" class="btn-close" @onclick='OnCancel'></button>
+                </div>
+                <div class="modal-body">
+                    <p>@Message</p>
+                    <p class="text-danger small mb-0">@L["DeleteModal_Warning"]</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick='OnCancel'>@L["Common_Cancel"]</button>
+                    <button class="btn btn-danger" @onclick='OnConfirm' disabled="@IsDisabled">
+                        @(IsDisabled ? L["DeleteModal_Deleting"] : L["DeleteModal_Delete"])
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = "Delete";
+    [Parameter] public string Message { get; set; } = "Are you sure?";
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

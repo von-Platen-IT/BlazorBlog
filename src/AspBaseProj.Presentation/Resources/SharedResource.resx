@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- Common -->
+  <data name="Common_Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common_View" xml:space="preserve"><value>View</value></data>
+  <data name="Common_Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Common_SomethingWentWrong" xml:space="preserve"><value>Something went wrong: {0}</value></data>
+  <data name="Common_Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="Common_No" xml:space="preserve"><value>No</value></data>
+  <data name="Common_Unknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Common_Guest" xml:space="preserve"><value>Guest</value></data>
+
+  <!-- Navigation -->
+  <data name="Nav_Brand" xml:space="preserve"><value>BlazorBlog</value></data>
+  <data name="Nav_Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Nav_MyPosts" xml:space="preserve"><value>My Posts</value></data>
+  <data name="Nav_NewPost" xml:space="preserve"><value>New Post</value></data>
+  <data name="Nav_Moderation" xml:space="preserve"><value>Moderation</value></data>
+  <data name="Nav_Users" xml:space="preserve"><value>Users</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Nav_Logout" xml:space="preserve"><value>Logout</value></data>
+  <data name="Nav_Login" xml:space="preserve"><value>Login</value></data>
+  <data name="Nav_Register" xml:space="preserve"><value>Register</value></data>
+  <data name="Nav_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Nav_ApiDocs" xml:space="preserve"><value>API Docs</value></data>
+  <data name="Nav_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Footer_Description" xml:space="preserve"><value>A multi-user blog platform built with .NET 10, ASP.NET Core and BootstrapBlazor.</value></data>
+  <data name="Footer_Navigation" xml:space="preserve"><value>Navigation</value></data>
+  <data name="Footer_Account" xml:space="preserve"><value>Account</value></data>
+  <data name="Footer_Copyright" xml:space="preserve"><value>© 2026 BlazorBlog — Powered by ASP.NET Core and BootstrapBlazor</value></data>
+
+  <!-- Home / Post List -->
+  <data name="Home_Title" xml:space="preserve"><value>📝 Latest Posts</value></data>
+  <data name="Home_NoPosts" xml:space="preserve"><value>No posts yet.</value></data>
+  <data name="Home_WriteFirstPost" xml:space="preserve"><value>Write the first post</value></data>
+  <data name="PostList_By" xml:space="preserve"><value>By</value></data>
+
+  <!-- Post Detail -->
+  <data name="PostDetail_Draft" xml:space="preserve"><value>📝 Draft</value></data>
+  <data name="PostDetail_Created" xml:space="preserve"><value>Created</value></data>
+  <data name="PostDetail_PublishNow" xml:space="preserve"><value>✅ Publish Now</value></data>
+  <data name="PostDetail_DeleteDraft" xml:space="preserve"><value>🗑️ Delete Draft</value></data>
+  <data name="PostDetail_Edit" xml:space="preserve"><value>✏️ Edit</value></data>
+  <data name="PostDetail_DeleteTitle" xml:space="preserve"><value>Delete Draft</value></data>
+  <data name="PostDetail_DeleteMessage" xml:space="preserve"><value>Are you sure you want to delete "{0}"?</value></data>
+  <data name="PostDetail_DeleteWarning" xml:space="preserve"><value>This action cannot be undone.</value></data>
+  <data name="PostDetail_Publishing" xml:space="preserve"><value>Publishing...</value></data>
+  <data name="PostDetail_Published" xml:space="preserve"><value>Published! Refreshing...</value></data>
+  <data name="PostDetail_FailedPublish" xml:space="preserve"><value>Failed to publish.</value></data>
+  <data name="PostDetail_FailedDelete" xml:space="preserve"><value>Failed to delete.</value></data>
+  <data name="PostDetail_PostNotFound" xml:space="preserve"><value>Post not found (ID: {0}).</value></data>
+  <data name="PostDetail_LoginToRate" xml:space="preserve"><value>Login to rate</value></data>
+  <data name="PostDetail_Bookmark" xml:space="preserve"><value>Bookmark</value></data>
+  <data name="PostDetail_Bookmarked" xml:space="preserve"><value>Bookmarked</value></data>
+
+  <!-- Comments -->
+  <data name="Comments_Title" xml:space="preserve"><value>💬 Comments</value></data>
+  <data name="Comments_AddTitle" xml:space="preserve"><value>Add a Comment</value></data>
+  <data name="Comments_PlaceholderName" xml:space="preserve"><value>Your Name</value></data>
+  <data name="Comments_PlaceholderEmail" xml:space="preserve"><value>Your Email</value></data>
+  <data name="Comments_PlaceholderText" xml:space="preserve"><value>Write a comment...</value></data>
+  <data name="Comments_Submit" xml:space="preserve"><value>Submit</value></data>
+  <data name="Comments_Posting" xml:space="preserve"><value>Posting...</value></data>
+  <data name="Comments_NoComments" xml:space="preserve"><value>No comments yet. Be the first to comment!</value></data>
+  <data name="Comments_PendingApproval" xml:space="preserve"><value>⏳ Pending Approval</value></data>
+  <data name="Comments_ThankYouTitle" xml:space="preserve"><value>✅ Thank you!</value></data>
+  <data name="Comments_ThankYouBody" xml:space="preserve"><value>Your comment has been submitted and is pending approval by an administrator.</value></data>
+  <data name="Comments_WriteAnother" xml:space="preserve"><value>Write another comment</value></data>
+  <data name="Comments_FailedPost" xml:space="preserve"><value>Failed to post comment. Please try again.</value></data>
+  <data name="Comments_FailedLoad" xml:space="preserve"><value>Failed to load comments.</value></data>
+  <data name="Comments_Reply" xml:space="preserve"><value>💬 Reply</value></data>
+  <data name="Comments_ReplyPlaceholder" xml:space="preserve"><value>Write a reply...</value></data>
+  <data name="Comments_SubmitReply" xml:space="preserve"><value>Submit Reply</value></data>
+  <data name="Comments_RepliesClosed" xml:space="preserve"><value>Replies are closed for this thread</value></data>
+  <data name="Comments_Anonymous" xml:space="preserve"><value>Anonymous</value></data>
+  <data name="Comments_FailedReply" xml:space="preserve"><value>Failed to post reply. Please try again.</value></data>
+
+  <!-- Login -->
+  <data name="Login_Title" xml:space="preserve"><value>Login</value></data>
+  <data name="Login_Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Login_Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Login_Button" xml:space="preserve"><value>Login</value></data>
+  <data name="Login_LoggingIn" xml:space="preserve"><value>Logging in...</value></data>
+  <data name="Login_OrLoginWith" xml:space="preserve"><value>Or login with</value></data>
+  <data name="Login_NoAccount" xml:space="preserve"><value>Don't have an account?</value></data>
+  <data name="Login_RegisterLink" xml:space="preserve"><value>Register</value></data>
+  <data name="Login_InvalidCredentials" xml:space="preserve"><value>Invalid credentials.</value></data>
+
+  <!-- Register -->
+  <data name="Register_Title" xml:space="preserve"><value>Register</value></data>
+  <data name="Register_Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Register_EmailOptional" xml:space="preserve"><value>Email (optional)</value></data>
+  <data name="Register_Password" xml:space="preserve"><value>Password</value></data>
+  <data name="Register_Button" xml:space="preserve"><value>Register</value></data>
+  <data name="Register_Registering" xml:space="preserve"><value>Registering...</value></data>
+  <data name="Register_OrSignUpWith" xml:space="preserve"><value>Or sign up with</value></data>
+  <data name="Register_HaveAccount" xml:space="preserve"><value>Already have an account?</value></data>
+  <data name="Register_LoginLink" xml:space="preserve"><value>Login</value></data>
+  <data name="Register_Failed" xml:space="preserve"><value>Registration failed. The username may already be taken.</value></data>
+
+  <!-- Post Editor -->
+  <data name="Editor_NewPost" xml:space="preserve"><value>✏️ New Post</value></data>
+  <data name="Editor_EditPost" xml:space="preserve"><value>✏️ Edit Post</value></data>
+  <data name="Editor_Title" xml:space="preserve"><value>Title</value></data>
+  <data name="Editor_TitlePlaceholder" xml:space="preserve"><value>Enter post title...</value></data>
+  <data name="Editor_Content" xml:space="preserve"><value>Content (Markdown)</value></data>
+  <data name="Editor_ContentPlaceholder" xml:space="preserve"><value>Write your post in Markdown...</value></data>
+  <data name="Editor_Published" xml:space="preserve"><value>Published</value></data>
+  <data name="Editor_Create" xml:space="preserve"><value>Create</value></data>
+  <data name="Editor_Update" xml:space="preserve"><value>Update</value></data>
+  <data name="Editor_PostNotFound" xml:space="preserve"><value>Post not found.</value></data>
+  <data name="Editor_FailedCreate" xml:space="preserve"><value>Failed to create post.</value></data>
+  <data name="Editor_FailedUpdate" xml:space="preserve"><value>Failed to update post.</value></data>
+  <data name="Editor_FailedDelete" xml:space="preserve"><value>Failed to delete post.</value></data>
+
+  <!-- Image Uploader -->
+  <data name="Images_Title" xml:space="preserve"><value>🖼️ Images</value></data>
+  <data name="Images_Upload" xml:space="preserve"><value>Upload Image</value></data>
+  <data name="Images_Uploading" xml:space="preserve"><value>Uploading...</value></data>
+  <data name="Images_UploadButton" xml:space="preserve"><value>Upload</value></data>
+  <data name="Images_Loading" xml:space="preserve"><value>Loading images...</value></data>
+  <data name="Images_None" xml:space="preserve"><value>No images uploaded yet.</value></data>
+  <data name="Images_CopyMarkdown" xml:space="preserve"><value>📋 Copy Markdown</value></data>
+  <data name="Images_FailedUpload" xml:space="preserve"><value>Failed to upload image.</value></data>
+
+  <!-- Social Embed -->
+  <data name="Social_Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Social_YouTube" xml:space="preserve"><value>YouTube Video</value></data>
+  <data name="Social_Vimeo" xml:space="preserve"><value>Vimeo Video</value></data>
+  <data name="Social_Twitter" xml:space="preserve"><value>X / Twitter Post</value></data>
+  <data name="Social_ExternalLink" xml:space="preserve"><value>External Link</value></data>
+
+  <!-- My Posts -->
+  <data name="MyPosts_Title" xml:space="preserve"><value>📋 My Posts</value></data>
+  <data name="MyPosts_All" xml:space="preserve"><value>All</value></data>
+  <data name="MyPosts_Published" xml:space="preserve"><value>✅ Published</value></data>
+  <data name="MyPosts_Drafts" xml:space="preserve"><value>📝 Drafts</value></data>
+  <data name="MyPosts_Bookmarks" xml:space="preserve"><value>🔖 Bookmarks</value></data>
+  <data name="MyPosts_NewPost" xml:space="preserve"><value>✏️ New Post</value></data>
+  <data name="MyPosts_NoDrafts" xml:space="preserve"><value>No drafts.</value></data>
+  <data name="MyPosts_NoPublished" xml:space="preserve"><value>No published posts.</value></data>
+  <data name="MyPosts_NoPosts" xml:space="preserve"><value>No posts yet.</value></data>
+  <data name="MyPosts_NoBookmarks" xml:space="preserve"><value>No bookmarked posts.</value></data>
+  <data name="MyPosts_ColTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="MyPosts_ColAuthor" xml:space="preserve"><value>Author</value></data>
+  <data name="MyPosts_ColStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="MyPosts_ColComments" xml:space="preserve"><value>💬 Comments</value></data>
+  <data name="MyPosts_ColCreated" xml:space="preserve"><value>Created</value></data>
+  <data name="MyPosts_ColActions" xml:space="preserve"><value>Actions</value></data>
+  <data name="MyPosts_BadgePublished" xml:space="preserve"><value>Published</value></data>
+  <data name="MyPosts_BadgeDraft" xml:space="preserve"><value>Draft</value></data>
+  <data name="MyPosts_DeleteTitle" xml:space="preserve"><value>Delete Post</value></data>
+  <data name="MyPosts_DeleteMessage" xml:space="preserve"><value>Are you sure you want to delete "{0}"?</value></data>
+  <data name="MyPosts_PublishedSuccess" xml:space="preserve"><value>Post published successfully!</value></data>
+  <data name="MyPosts_DeletedSuccess" xml:space="preserve"><value>Post deleted.</value></data>
+  <data name="MyPosts_FailedLoad" xml:space="preserve"><value>Failed to load posts.</value></data>
+  <data name="MyPosts_FailedLoadBookmarks" xml:space="preserve"><value>Failed to load bookmarks.</value></data>
+  <data name="MyPosts_FailedPublish" xml:space="preserve"><value>Failed to publish post.</value></data>
+  <data name="MyPosts_FailedDelete" xml:space="preserve"><value>Failed to delete post.</value></data>
+  <data name="MyPosts_PostNotFound" xml:space="preserve"><value>Post not found.</value></data>
+  <data name="MyPosts_TooltipEdit" xml:space="preserve"><value>Edit</value></data>
+  <data name="MyPosts_TooltipPublish" xml:space="preserve"><value>Publish</value></data>
+  <data name="MyPosts_TooltipDelete" xml:space="preserve"><value>Delete</value></data>
+
+  <!-- Moderation -->
+  <data name="Mod_Title" xml:space="preserve"><value>✅ Moderation Queue</value></data>
+  <data name="Mod_NoPending" xml:space="preserve"><value>No pending comments.</value></data>
+  <data name="Mod_AllReviewed" xml:space="preserve"><value>All comments have been reviewed.</value></data>
+  <data name="Mod_ApproveSelected" xml:space="preserve"><value>✅ Approve Selected ({0})</value></data>
+  <data name="Mod_RejectSelected" xml:space="preserve"><value>❌ Reject Selected ({0})</value></data>
+  <data name="Mod_ColAuthor" xml:space="preserve"><value>Author</value></data>
+  <data name="Mod_ColContent" xml:space="preserve"><value>Content</value></data>
+  <data name="Mod_ColDate" xml:space="preserve"><value>Date</value></data>
+  <data name="Mod_ColActions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Mod_Approve" xml:space="preserve"><value>Approve</value></data>
+  <data name="Mod_Reject" xml:space="preserve"><value>Reject</value></data>
+  <data name="Mod_Approved" xml:space="preserve"><value>Comment approved.</value></data>
+  <data name="Mod_Rejected" xml:space="preserve"><value>Comment rejected.</value></data>
+  <data name="Mod_BulkApproved" xml:space="preserve"><value>Approved {0} comment(s).</value></data>
+  <data name="Mod_BulkRejected" xml:space="preserve"><value>Rejected {0} comment(s).</value></data>
+
+  <!-- User Management -->
+  <data name="Users_Title" xml:space="preserve"><value>👥 User Management</value></data>
+  <data name="Users_BulkActions" xml:space="preserve"><value>Bulk Actions:</value></data>
+  <data name="Users_Selected" xml:space="preserve"><value>{0} user(s) selected</value></data>
+  <data name="Users_AssignGroup" xml:space="preserve"><value>+ Assign Group</value></data>
+  <data name="Users_RemoveGroup" xml:space="preserve"><value>- Remove Group</value></data>
+  <data name="Users_DeleteSelected" xml:space="preserve"><value>🗑️ Delete Selected</value></data>
+  <data name="Users_ColUsername" xml:space="preserve"><value>Username</value></data>
+  <data name="Users_ColEmail" xml:space="preserve"><value>Email</value></data>
+  <data name="Users_ColGroups" xml:space="preserve"><value>Groups</value></data>
+  <data name="Users_ColRoot" xml:space="preserve"><value>Root</value></data>
+  <data name="Users_AddGroup" xml:space="preserve"><value>+ Group</value></data>
+  <data name="Users_RootCannotModify" xml:space="preserve"><value>Root — cannot modify</value></data>
+  <data name="Users_GroupAssigned" xml:space="preserve"><value>Group assigned.</value></data>
+  <data name="Users_GroupRemoved" xml:space="preserve"><value>Group removed.</value></data>
+  <data name="Users_UserDeleted" xml:space="preserve"><value>User deleted.</value></data>
+  <data name="Users_BulkGroupAssigned" xml:space="preserve"><value>Group assigned to selected users.</value></data>
+  <data name="Users_BulkGroupRemoved" xml:space="preserve"><value>Group removed from selected users.</value></data>
+  <data name="Users_BulkDeleted" xml:space="preserve"><value>Selected users deleted.</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>⚙️ System Settings</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>💾 Save</value></data>
+  <data name="Settings_Saved" xml:space="preserve"><value>Setting "{0}" saved.</value></data>
+
+  <!-- Profile -->
+  <data name="Profile_Title" xml:space="preserve"><value>👤 Profile</value></data>
+  <data name="Profile_Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Profile_Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Profile_EmailNotSet" xml:space="preserve"><value>Not set</value></data>
+  <data name="Profile_Groups" xml:space="preserve"><value>Groups</value></data>
+  <data name="Profile_NoGroups" xml:space="preserve"><value>None (Root has unrestricted access)</value></data>
+  <data name="Profile_RootBadge" xml:space="preserve"><value>Root</value></data>
+
+  <!-- Delete Confirm Modal -->
+  <data name="DeleteModal_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="DeleteModal_Deleting" xml:space="preserve"><value>Deleting...</value></data>
+  <data name="DeleteModal_Warning" xml:space="preserve"><value>This action cannot be undone.</value></data>
+
+  <!-- Language Selector -->
+  <data name="Lang_English" xml:space="preserve"><value>English</value></data>
+  <data name="Lang_German" xml:space="preserve"><value>Deutsch</value></data>
+</root>

@@ -1,0 +1,28 @@
+@* Pager.razor *@
+@if (TotalPages > 1)
+{
+    <div class="d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item @(CurrentPage <= 1 ? "disabled" : "")">
+                    <button class="page-link" @onclick='() => OnPageChanged.InvokeAsync(CurrentPage - 1)'>«</button>
+                </li>
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    <li class="page-item @(i == CurrentPage ? "active" : "")">
+                        <button class="page-link" @onclick='() => OnPageChanged.InvokeAsync(i)'>@i</button>
+                    </li>
+                }
+                <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : "")">
+                    <button class="page-link" @onclick='() => OnPageChanged.InvokeAsync(CurrentPage + 1)'>»</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+}
+
+@code {
+    [Parameter] public int CurrentPage { get; set; }
+    [Parameter] public int TotalPages { get; set; }
+    [Parameter] public EventCallback<int> OnPageChanged { get; set; }
+}

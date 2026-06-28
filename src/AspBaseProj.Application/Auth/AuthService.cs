@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AspBaseProj.Application.Contracts.Auth;
 using AspBaseProj.Domain.Entities;
 using AspBaseProj.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;

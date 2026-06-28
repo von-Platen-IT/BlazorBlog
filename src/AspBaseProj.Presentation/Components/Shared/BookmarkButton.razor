@@ -1,0 +1,14 @@
+@* BookmarkButton.razor *@
+@if (IsAuthenticated)
+{
+    <button class="btn @(IsBookmarked ? "btn-warning" : "btn-outline-warning") btn-sm"
+            @onclick="OnToggleBookmark" title="Bookmark">
+        @(IsBookmarked ? "🔖" : "🏷️") @(IsBookmarked ? L["PostDetail_Bookmarked"] : L["PostDetail_Bookmark"])
+    </button>
+}
+
+@code {
+    [Parameter] public bool IsBookmarked { get; set; }
+    [Parameter] public bool IsAuthenticated { get; set; }
+    [Parameter] public EventCallback OnToggleBookmark { get; set; }
+}

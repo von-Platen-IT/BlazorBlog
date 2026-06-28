@@ -1,0 +1,30 @@
+@* PostList.razor *@
+@inject NavigationManager Navigation
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    @foreach (var post in Posts)
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm cursor-pointer" @onclick='() => OnViewPost.InvokeAsync(post.Id)'>
+                <div class="card-body">
+                    <h5 class="card-title">@post.Title</h5>
+                    <p class="card-text text-muted small">@Truncate(post.Content, 120)</p>
+                </div>
+                <div class="card-footer text-muted small bg-transparent">
+                    <div>@L["PostList_By"] @(post.Author?.UserName ?? L["Common_Unknown"]) on @post.PublishedAt?.ToString("d")</div>
+                    <div class="mt-1">
+                        👍 @post.LikeCount  👎 @post.DislikeCount
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<PostDto> Posts { get; set; } = new();
+    [Parameter] public EventCallback<Guid> OnViewPost { get; set; }
+
+    private static string Truncate(string text, int maxLength) =>
+        text.Length <= maxLength ? text : text[..maxLength] + "...";
+}

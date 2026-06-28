@@ -2,13 +2,16 @@
 @rendermode InteractiveServer
 @inject ApiClient Api
 
-<PageTitle>System Settings</PageTitle>
+<PageTitle>@L["Nav_Settings"]</PageTitle>
 
-<h2 class="mb-4">⚙️ System Settings</h2>
+<h2 class="mb-4">⚙️ @L["Settings_Title"]</h2>
+
+<AlertMessage @bind-Message="error" Type="AlertMessage.AlertType.Danger" />
+<AlertMessage @bind-Message="successMessage" Type="AlertMessage.AlertType.Success" />
 
 @if (settings is null)
 {
-    <p>Loading...</p>
+    <p>@L["Common_Loading"]</p>
 }
 else
 {
@@ -21,7 +24,7 @@ else
                         <h6 class="card-title text-muted text-uppercase small">@s.Key</h6>
                         <div class="input-group">
                             <input class="form-control form-control-sm" @bind="editValues[s.Key]" />
-                            <Button Color="Color.Primary" Size="Size.Small" OnClick="() => Save(s.Key)">💾 Save</Button>
+                            <Button Color="Color.Primary" Size="Size.Small" OnClick="() => Save(s.Key)">@L["Settings_Save"]</Button>
                         </div>
                     </div>
                 </div>
@@ -33,20 +36,39 @@ else
 @code {
     private List<SettingDto>? settings;
     private Dictionary<string, string> editValues = [];
+    private string? error;
+    private string? successMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        settings = await Api.GetSettingsAsync();
-        if (settings is not null)
+        try
         {
-            foreach (var s in settings)
-                editValues[s.Key] = s.Value ?? "";
+            settings = await Api.GetSettingsAsync();
+            if (settings is not null)
+            {
+                foreach (var s in settings)
+                    editValues[s.Key] = s.Value ?? "";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
         }
     }
 
     private async Task Save(string key)
     {
-        await Api.UpdateSettingAsync(key, editValues.GetValueOrDefault(key, ""));
-        settings = await Api.GetSettingsAsync();
+        error = null;
+        successMessage = null;
+        try
+        {
+            await Api.UpdateSettingAsync(key, editValues.GetValueOrDefault(key, ""));
+            successMessage = L["Settings_Saved", key];
+            settings = await Api.GetSettingsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 }

@@ -1,26 +1,31 @@
 @using AspBaseProj.Presentation.Components.Shared
 @inject ApiClient Api
 
-<div class="comment-thread @(Depth > 0 ? "comment-thread--nested" : "")">
+<div class="comment-thread @(Depth > 0 ? "comment-thread--nested" : "")"
+     style="--comment-depth: @Depth">
     <div class="comment-node">
         <div class="d-flex justify-content-between align-items-start mb-1">
             <div>
-                <strong class="me-2">@(Comment.User?.UserName ?? Comment.GuestName ?? "Anonymous")</strong>
+                <strong class="me-2">@(Comment.User?.UserName ?? Comment.GuestName ?? L["Comments_Anonymous"])</strong>
                 @if (!Comment.IsApproved)
                 {
-                    <span class="badge bg-warning text-dark me-2">⏳ Pending Approval</span>
+                    <span class="badge bg-warning text-dark me-2">@L["Comments_PendingApproval"]</span>
                 }
                 <small class="text-muted">@Comment.CreatedAt.ToString("g")</small>
             </div>
         </div>
         <p class="mb-2">@Comment.Content</p>
 
-        @if (Comment.IsApproved)
+        @if (Comment.IsApproved && Depth < MaxDepth)
         {
             <button class="btn btn-sm btn-link p-0 text-decoration-none"
                     @onclick='() => showReplyForm = !showReplyForm'>
-                💬 Reply
+                @L["Comments_Reply"]
             </button>
+        }
+        else if (Depth >= MaxDepth && Comment.Replies.Count > 0)
+        {
+            <small class="text-muted">@L["Comments_RepliesClosed"]</small>
         }
 
         @if (showReplyForm)
@@ -30,31 +35,28 @@
                 {
                     <div class="row g-2 mb-2">
                         <div class="col-md-6">
-                            <input class="form-control form-control-sm" placeholder="Your Name" @bind="replyGuestName" />
+                            <input class="form-control form-control-sm" placeholder="@L["Comments_PlaceholderName"]" @bind="replyGuestName" />
                         </div>
                         <div class="col-md-6">
-                            <input class="form-control form-control-sm" placeholder="Your Email" @bind="replyGuestEmail" />
+                            <input class="form-control form-control-sm" placeholder="@L["Comments_PlaceholderEmail"]" @bind="replyGuestEmail" />
                         </div>
                     </div>
                 }
                 <textarea class="form-control form-control-sm mb-2" rows="2"
                           @bind="replyText" @bind:event="oninput"
-                          placeholder="Write a reply..."></textarea>
+                          placeholder="@L["Comments_ReplyPlaceholder"]"></textarea>
                 <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-primary"
                             @onclick="SubmitReplyAsync"
                             disabled="@(string.IsNullOrWhiteSpace(replyText) || isSubmitting)">
-                        @(isSubmitting ? "Posting..." : "Submit Reply")
+                        @(isSubmitting ? L["Comments_Posting"] : L["Comments_SubmitReply"])
                     </button>
                     <button class="btn btn-sm btn-secondary"
                             @onclick='() => { showReplyForm = false; replyText = ""; }'>
-                        Cancel
+                        @L["Common_Cancel"]
                     </button>
                 </div>
-                @if (!string.IsNullOrEmpty(replyError))
-                {
-                    <div class="text-danger small mt-1">@replyError</div>
-                }
+                <AlertMessage @bind-Message="replyError" Type="AlertMessage.AlertType.Danger" Dismissible="true" />
             </div>
         }
 
@@ -75,6 +77,8 @@
     [Parameter] public int Depth { get; set; }
     [Parameter] public bool IsAuthenticated { get; set; }
 
+    private const int MaxDepth = 5;
+
     private bool showReplyForm;
     private string replyText = "";
     private string replyGuestName = "";
@@ -88,22 +92,31 @@
         isSubmitting = true;
         replyError = null;
 
-        var result = await Api.ReplyToCommentAsync(Comment.Id, replyText, replyGuestName, replyGuestEmail);
-
-        if (result is not null)
+        try
         {
-            // Optimistic insert: add the new reply directly to the parent's Replies list
-            Comment.Replies.Add(result);
-            showReplyForm = false;
-            replyText = "";
-            replyGuestName = "";
-            replyGuestEmail = "";
-        }
-        else
-        {
-            replyError = "Failed to post reply. Please try again.";
-        }
+            var result = await Api.ReplyToCommentAsync(Comment.Id, replyText, replyGuestName, replyGuestEmail);
 
-        isSubmitting = false;
+            if (result is not null)
+            {
+                // Optimistic insert: add the new reply directly to the parent's Replies list
+                Comment.Replies.Add(result);
+                showReplyForm = false;
+                replyText = "";
+                replyGuestName = "";
+                replyGuestEmail = "";
+            }
+            else
+            {
+                replyError = L["Comments_FailedReply"];
+            }
+        }
+        catch (Exception ex)
+        {
+            replyError = L["Common_SomethingWentWrong", ex.Message];
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 }

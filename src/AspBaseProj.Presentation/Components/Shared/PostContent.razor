@@ -1,0 +1,30 @@
+@* PostContent.razor *@
+<article class="mb-4">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+        <h1 class="mb-0">@Post.Title</h1>
+        @if (!Post.IsPublished)
+        {
+            <Badge Color="Color.Warning" Class="ms-2 fs-6">@L["PostDetail_Draft"]</Badge>
+        }
+    </div>
+    <p class="text-muted mb-4">
+        @L["PostList_By"] <strong>@(Post.Author?.UserName ?? L["Common_Unknown"])</strong>
+        @if (Post.IsPublished)
+        {
+            <span> on @Post.PublishedAt?.ToString("f")</span>
+        }
+        else
+        {
+            <span> — @L["PostDetail_Created"] @Post.CreatedAt.ToString("d")</span>
+        }
+    </p>
+    <hr />
+    <div class="post-content">
+        @ChildContent
+    </div>
+</article>
+
+@code {
+    [Parameter] public PostDto Post { get; set; } = default!;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

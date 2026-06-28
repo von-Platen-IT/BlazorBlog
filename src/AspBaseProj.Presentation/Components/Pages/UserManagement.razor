@@ -2,23 +2,26 @@
 @rendermode InteractiveServer
 @inject ApiClient Api
 
-<PageTitle>User Management</PageTitle>
+<PageTitle>@L["Nav_Users"]</PageTitle>
 
-<h2 class="mb-4">👥 User Management</h2>
+<h2 class="mb-4">👥 @L["Users_Title"]</h2>
+
+<AlertMessage @bind-Message="error" Type="AlertMessage.AlertType.Danger" />
+<AlertMessage @bind-Message="successMessage" Type="AlertMessage.AlertType.Success" />
 
 @if (users is null || allGroups is null)
 {
-    <p>Loading...</p>
+    <p>@L["Common_Loading"]</p>
 }
 else
 {
     <div class="mb-3 p-3 bg-light rounded border d-flex align-items-center gap-2 flex-wrap">
-        <span class="fw-bold me-2">Bulk Actions:</span>
-        <span class="text-muted small me-2">@selectedRows.Count user(s) selected</span>
+        <span class="fw-bold me-2">@L["Users_BulkActions"]</span>
+        <span class="text-muted small me-2">@L["Users_Selected", selectedRows.Count]</span>
         <div class="dropdown d-inline">
             <Button Color="Color.Success" Size="Size.Small" class="dropdown-toggle" data-bs-toggle="dropdown"
                     IsDisabled="selectedRows.Count == 0">
-                + Assign Group
+                @L["Users_AssignGroup"]
             </Button>
             <ul class="dropdown-menu">
                 @foreach (var g in allGroups)
@@ -32,7 +35,7 @@ else
         <div class="dropdown d-inline">
             <Button Color="Color.Warning" Size="Size.Small" class="dropdown-toggle" data-bs-toggle="dropdown"
                     IsDisabled="selectedRows.Count == 0">
-                - Remove Group
+                @L["Users_RemoveGroup"]
             </Button>
             <ul class="dropdown-menu">
                 @foreach (var g in allGroups)
@@ -44,7 +47,7 @@ else
             </ul>
         </div>
         <Button Color="Color.Danger" Size="Size.Small" OnClick="BulkDelete" IsDisabled="selectedRows.Count == 0">
-            🗑️ Delete Selected
+            🗑️ @L["Users_DeleteSelected"]
         </Button>
     </div>
 
@@ -52,16 +55,16 @@ else
            PageItemsSource="new int[] { 10, 25, 50 }" IsPagination="true" IsStriped="true"
            IsMultipleSelect="true" @bind-SelectedRows="selectedRows">
         <TableColumns>
-            <TableColumn @bind-Field="@context.UserName" Text="Username" />
-            <TableColumn @bind-Field="@context.Email" Text="Email" />
-            <TableColumn @bind-Field="@context.GroupsDisplay" Text="Groups" />
-            <TableColumn @bind-Field="@context.IsRootDisplay" Text="Root" />
+            <TableColumn @bind-Field="@context.UserName" Text="@L["Users_ColUsername"]" />
+            <TableColumn @bind-Field="@context.Email" Text="@L["Users_ColEmail"]" />
+            <TableColumn @bind-Field="@context.GroupsDisplay" Text="@L["Users_ColGroups"]" />
+            <TableColumn @bind-Field="@context.IsRootDisplay" Text="@L["Users_ColRoot"]" />
         </TableColumns>
         <RowButtonTemplate>
             @if (!context.IsRoot)
             {
                 <div class="dropdown d-inline me-1">
-                    <Button Color="Color.Secondary" Size="Size.Small" class="dropdown-toggle" data-bs-toggle="dropdown">+ Group</Button>
+                    <Button Color="Color.Secondary" Size="Size.Small" class="dropdown-toggle" data-bs-toggle="dropdown">@L["Users_AddGroup"]</Button>
                     <ul class="dropdown-menu">
                         @foreach (var g in allGroups.Where(g => !context.UserGroups.Contains(g.Name)))
                         {
@@ -79,7 +82,7 @@ else
             }
             else
             {
-                <Badge Color="Color.Warning">Root — cannot modify</Badge>
+                <Badge Color="Color.Warning">@L["Users_RootCannotModify"]</Badge>
             }
         </RowButtonTemplate>
     </Table>
@@ -90,6 +93,8 @@ else
     private List<GroupDto>? allGroups;
     private List<UserDisplayRow>? displayRows;
     private List<UserDisplayRow> selectedRows = [];
+    private string? error;
+    private string? successMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,55 +103,116 @@ else
 
     private async Task AddGroup(Guid userId, Guid groupId)
     {
-        await Api.AssignGroupAsync(userId, groupId);
-        await Reload();
+        error = null;
+        try
+        {
+            await Api.AssignGroupAsync(userId, groupId);
+            successMessage = L["Users_GroupAssigned"];
+            await Reload();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task RemoveGroup(Guid userId, string groupName)
     {
-        var group = allGroups?.FirstOrDefault(g => g.Name == groupName);
-        if (group is not null)
+        error = null;
+        try
         {
-            await Api.RemoveGroupAsync(userId, group.Id);
-            await Reload();
+            var group = allGroups?.FirstOrDefault(g => g.Name == groupName);
+            if (group is not null)
+            {
+                await Api.RemoveGroupAsync(userId, group.Id);
+                successMessage = L["Users_GroupRemoved"];
+                await Reload();
+            }
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
         }
     }
 
     private async Task DeleteUser(Guid userId)
     {
-        await Api.DeleteUserAsync(userId);
-        await Reload();
+        error = null;
+        try
+        {
+            await Api.DeleteUserAsync(userId);
+            successMessage = L["Users_UserDeleted"];
+            await Reload();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task BulkAssignGroup(Guid groupId)
     {
-        foreach (var row in selectedRows.Where(r => !r.IsRoot))
-            await Api.AssignGroupAsync(row.UserId, groupId);
-        selectedRows.Clear();
-        await Reload();
+        error = null;
+        try
+        {
+            foreach (var row in selectedRows.Where(r => !r.IsRoot))
+                await Api.AssignGroupAsync(row.UserId, groupId);
+            successMessage = L["Users_BulkGroupAssigned"];
+            selectedRows.Clear();
+            await Reload();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task BulkRemoveGroup(Guid groupId)
     {
-        foreach (var row in selectedRows.Where(r => !r.IsRoot))
-            await Api.RemoveGroupAsync(row.UserId, groupId);
-        selectedRows.Clear();
-        await Reload();
+        error = null;
+        try
+        {
+            foreach (var row in selectedRows.Where(r => !r.IsRoot))
+                await Api.RemoveGroupAsync(row.UserId, groupId);
+            successMessage = L["Users_BulkGroupRemoved"];
+            selectedRows.Clear();
+            await Reload();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task BulkDelete()
     {
-        foreach (var row in selectedRows.Where(r => !r.IsRoot))
-            await Api.DeleteUserAsync(row.UserId);
-        selectedRows.Clear();
-        await Reload();
+        error = null;
+        try
+        {
+            foreach (var row in selectedRows.Where(r => !r.IsRoot))
+                await Api.DeleteUserAsync(row.UserId);
+            successMessage = L["Users_BulkDeleted"];
+            selectedRows.Clear();
+            await Reload();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private async Task Reload()
     {
-        users = await Api.GetUsersAsync();
-        allGroups = await Api.GetGroupsAsync();
-        RefreshDisplay();
+        try
+        {
+            users = await Api.GetUsersAsync();
+            allGroups = await Api.GetGroupsAsync();
+            RefreshDisplay();
+        }
+        catch (Exception ex)
+        {
+            error = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
     private void RefreshDisplay()
@@ -157,7 +223,7 @@ else
             UserName = u.UserName,
             Email = u.Email ?? "-",
             GroupsDisplay = u.Groups.Count > 0 ? string.Join(", ", u.Groups) : "-",
-            IsRootDisplay = u.IsRoot ? "✅ Yes" : "No",
+            IsRootDisplay = u.IsRoot ? $"✅ {L["Common_Yes"]}" : L["Common_No"],
             IsRoot = u.IsRoot,
             UserGroups = u.Groups
         }).ToList();

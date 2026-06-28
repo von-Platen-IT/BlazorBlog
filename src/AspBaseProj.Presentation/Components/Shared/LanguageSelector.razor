@@ -1,0 +1,45 @@
+@* LanguageSelector.razor — Dropdown zur Sprachauswahl in der Navigation *@
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="dropdown d-inline">
+    <button class="btn btn-outline-light btn-sm dropdown-toggle"
+            data-bs-toggle="dropdown" aria-expanded="false">
+        🌐 @CurrentDisplayName
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        @foreach (var culture in SupportedCultures)
+        {
+            <li>
+                <a class="dropdown-item @(culture.Name == CurrentCultureName ? "active" : "")"
+                   @onclick="() => ChangeCulture(culture.Name)"
+                   @onclick:preventDefault
+                   href="#">
+                    @culture.NativeName
+                </a>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    private static readonly CultureInfo[] SupportedCultures =
+    [
+        new("en"),
+        new("de"),
+    ];
+
+    private string CurrentCultureName => CultureInfo.CurrentUICulture.Name;
+
+    private string CurrentDisplayName => CultureInfo.CurrentUICulture.Name switch
+    {
+        "de" => "Deutsch",
+        _ => "English"
+    };
+
+    private async Task ChangeCulture(string culture)
+    {
+        await JS.InvokeVoidAsync("blazorCulture.set", culture);
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+}

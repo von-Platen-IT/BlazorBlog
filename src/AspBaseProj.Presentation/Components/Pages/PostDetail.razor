@@ -3,38 +3,20 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
-<PageTitle>@(post?.Title ?? "Post")</PageTitle>
+<PageTitle>@(post?.Title ?? L["Nav_Brand"])</PageTitle>
+
+<AlertMessage @bind-Message="actionError" Type="AlertMessage.AlertType.Danger" Dismissible="false" />
+<AlertMessage @bind-Message="actionSuccess" Type="AlertMessage.AlertType.Success" Dismissible="false" />
 
 @if (post is null)
 {
-    <p>Loading...</p>
+    <p>@L["Common_Loading"]</p>
 }
 else
 {
-    <article class="mb-4">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-            <h1 class="mb-0">@post.Title</h1>
-            @if (!post.IsPublished && isOwner)
-            {
-                <Badge Color="Color.Warning" Class="ms-2 fs-6">📝 Draft</Badge>
-            }
-        </div>
-        <p class="text-muted mb-4">
-            By <strong>@(post.Author?.UserName ?? "Unknown")</strong>
-            @if (post.IsPublished)
-            {
-                <span> on @post.PublishedAt?.ToString("f")</span>
-            }
-            else
-            {
-                <span> — Created @post.CreatedAt.ToString("d")</span>
-            }
-        </p>
-        <hr />
-        <div class="post-content">
-            @((MarkupString)RenderMarkdown(post.Content))
-        </div>
-    </article>
+    <PostContent Post="post">
+        @MarkdownRenderer.ToHtml(post.Content)
+    </PostContent>
 
     @if (!post.IsPublished && isOwner)
     {
@@ -43,68 +25,36 @@ else
             <button class="btn btn-success"
                     @onclick="PublishPostAsync"
                     disabled="@isActionLoading">
-                @(isActionLoading ? "Publishing..." : "✅ Publish Now")
+                @(isActionLoading ? L["PostDetail_Publishing"] : L["PostDetail_PublishNow"])
             </button>
             <button class="btn btn-outline-danger"
                     @onclick='() => showDeleteConfirm = true'
                     disabled="@isActionLoading">
-                🗑️ Delete Draft
+                @L["PostDetail_DeleteDraft"]
             </button>
-            <a href='/posts/@post.Id/edit' class="btn btn-outline-primary">✏️ Edit</a>
-            @if (!string.IsNullOrEmpty(actionError))
-            {
-                <span class="text-danger small align-self-center">@actionError</span>
-            }
-            @if (!string.IsNullOrEmpty(actionSuccess))
-            {
-                <span class="text-success small align-self-center">@actionSuccess</span>
-            }
+            <a href='/posts/@post.Id/edit' class="btn btn-outline-primary">@L["PostDetail_Edit"]</a>
         </div>
 
         @* Delete Confirmation Modal *@
-        @if (showDeleteConfirm)
-        {
-            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Delete Draft</h5>
-                            <button type="button" class="btn-close" @onclick='() => showDeleteConfirm = false'></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Are you sure you want to delete <strong>"@post.Title"</strong>?</p>
-                            <p class="text-danger small mb-0">This action cannot be undone.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" @onclick='() => showDeleteConfirm = false'>Cancel</button>
-                            <button class="btn btn-danger" @onclick="DeleteDraftAsync" disabled="@isActionLoading">
-                                @(isActionLoading ? "Deleting..." : "Delete")
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+        <DeleteConfirmModal IsVisible="showDeleteConfirm"
+                            Title="@L["PostDetail_DeleteTitle"]"
+                            Message="@L["PostDetail_DeleteMessage", post.Title]"
+                            IsDisabled="isActionLoading"
+                            OnConfirm="DeleteDraftAsync"
+                            OnCancel='() => showDeleteConfirm = false' />
     }
     else
     {
         @* Published: Rating, Bookmark & Comments *@
-        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded shadow-sm">
-            <button class="btn @(userRating == "like" ? "btn-primary" : "btn-outline-primary") btn-sm"
-                    @onclick="ToggleLike" title="Like">
-                👍 <span class="ms-1">@likeCount</span>
-            </button>
-            <button class="btn @(userRating == "dislike" ? "btn-danger" : "btn-outline-danger") btn-sm"
-                    @onclick="ToggleDislike" title="Dislike">
-                👎 <span class="ms-1">@dislikeCount</span>
-            </button>
-            <div class="ms-auto">
-                <button class="btn @(isBookmarked ? "btn-warning" : "btn-outline-warning") btn-sm"
-                        @onclick="ToggleBookmark" title="Bookmark">
-                    @(isBookmarked ? "🔖" : "🏷️") Bookmark
-                </button>
-            </div>
-        </div>
+        <RatingBar PostId="Id"
+                   LikeCount="likeCount"
+                   DislikeCount="dislikeCount"
+                   UserRating="userRating"
+                   IsAuthenticated="isAuthenticated"
+                   IsBookmarked="isBookmarked"
+                   OnLike="ToggleLike"
+                   OnDislike="ToggleDislike"
+                   OnToggleBookmark="ToggleBookmark" />
 
         <hr />
 
@@ -129,31 +79,44 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        post = await Api.GetPostAsync(Id);
-        var user = await Api.GetCurrentUserAsync();
-        isAuthenticated = user is not null;
-
-        if (user is not null && post is not null)
+        try
         {
-            // Owner check: current user is author, admin, or root
-            isOwner = post.AuthorId.ToString() == user.UserId || user.IsRoot || user.Groups.Contains("Admin");
+            post = await Api.GetPostAsync(Id);
+
+            if (post is null)
+            {
+                actionError = L["PostDetail_PostNotFound", Id];
+                return;
+            }
+
+            var user = await Api.GetCurrentUserAsync();
+            isAuthenticated = user is not null;
+
+            if (user is not null)
+            {
+                isOwner = post.AuthorId.ToString() == user.UserId || user.IsRoot || user.Groups.Contains("Admin");
+            }
+
+            if (post.IsPublished)
+            {
+                var rating = await Api.GetPostRatingAsync(Id);
+                if (rating is not null)
+                {
+                    likeCount = rating.LikeCount;
+                    dislikeCount = rating.DislikeCount;
+                    userRating = rating.UserRating;
+                }
+
+                if (isAuthenticated)
+                {
+                    var bm = await Api.GetBookmarkStatusAsync(Id);
+                    isBookmarked = bm?.IsBookmarked ?? false;
+                }
+            }
         }
-
-        if (post is not null && post.IsPublished)
+        catch (Exception ex)
         {
-            var rating = await Api.GetPostRatingAsync(Id);
-            if (rating is not null)
-            {
-                likeCount = rating.LikeCount;
-                dislikeCount = rating.DislikeCount;
-                userRating = rating.UserRating;
-            }
-
-            if (isAuthenticated)
-            {
-                var bm = await Api.GetBookmarkStatusAsync(Id);
-                isBookmarked = bm?.IsBookmarked ?? false;
-            }
+            actionError = L["Common_SomethingWentWrong", $"{ex.GetType().Name}: {ex.Message}"];
         }
     }
 
@@ -164,17 +127,25 @@ else
         actionError = null;
         actionSuccess = null;
 
-        var updated = post with { IsPublished = true };
-        var result = await Api.UpdatePostAsync(Id, updated);
-        if (result is not null)
+        try
         {
-            actionSuccess = "Published! Refreshing...";
-            // Reload to show the published view
-            Navigation.NavigateTo($"/posts/{Id}", forceLoad: true);
+            var updated = post with { IsPublished = true };
+            var result = await Api.UpdatePostAsync(Id, updated);
+            if (result is not null)
+            {
+                actionSuccess = L["PostDetail_Published"];
+                // Reload to show the published view
+                Navigation.NavigateTo($"/posts/{Id}", forceLoad: true);
+            }
+            else
+            {
+                actionError = L["PostDetail_FailedPublish"];
+                isActionLoading = false;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            actionError = "Failed to publish.";
+            actionError = L["Common_SomethingWentWrong", ex.Message];
             isActionLoading = false;
         }
     }
@@ -186,14 +157,22 @@ else
         actionError = null;
         showDeleteConfirm = false;
 
-        var success = await Api.DeletePostAsync(Id);
-        if (success)
+        try
         {
-            Navigation.NavigateTo("/my/posts");
+            var success = await Api.DeletePostAsync(Id);
+            if (success)
+            {
+                Navigation.NavigateTo("/my/posts");
+            }
+            else
+            {
+                actionError = L["PostDetail_FailedDelete"];
+                isActionLoading = false;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            actionError = "Failed to delete.";
+            actionError = L["Common_SomethingWentWrong", ex.Message];
             isActionLoading = false;
         }
     }
@@ -201,41 +180,53 @@ else
     private async Task ToggleLike()
     {
         if (!isAuthenticated) return;
-        var result = await Api.LikePostAsync(Id);
-        if (result is not null)
+        try
         {
-            likeCount = result.LikeCount;
-            dislikeCount = result.DislikeCount;
-            userRating = result.UserRating;
+            var result = await Api.LikePostAsync(Id);
+            if (result is not null)
+            {
+                likeCount = result.LikeCount;
+                dislikeCount = result.DislikeCount;
+                userRating = result.UserRating;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionError = L["Common_SomethingWentWrong", ex.Message];
         }
     }
 
     private async Task ToggleDislike()
     {
         if (!isAuthenticated) return;
-        var result = await Api.DislikePostAsync(Id);
-        if (result is not null)
+        try
         {
-            likeCount = result.LikeCount;
-            dislikeCount = result.DislikeCount;
-            userRating = result.UserRating;
+            var result = await Api.DislikePostAsync(Id);
+            if (result is not null)
+            {
+                likeCount = result.LikeCount;
+                dislikeCount = result.DislikeCount;
+                userRating = result.UserRating;
+            }
+        }
+        catch (Exception ex)
+        {
+            actionError = L["Common_SomethingWentWrong", ex.Message];
         }
     }
 
     private async Task ToggleBookmark()
     {
         if (!isAuthenticated) return;
-        var result = await Api.ToggleBookmarkAsync(Id);
-        if (result is not null) isBookmarked = result.IsBookmarked;
+        try
+        {
+            var result = await Api.ToggleBookmarkAsync(Id);
+            if (result is not null) isBookmarked = result.IsBookmarked;
+        }
+        catch (Exception ex)
+        {
+            actionError = L["Common_SomethingWentWrong", ex.Message];
+        }
     }
 
-    private static string RenderMarkdown(string markdown)
-    {
-        var html = markdown
-            .Replace("&", "&").Replace("<", "<").Replace(">", ">")
-            .Replace("\n\n", "</p><p>")
-            .Replace("**", "<strong>").Replace("**", "</strong>")
-            .Replace("*", "<em>").Replace("*", "</em>");
-        return $"<p>{html}</p>";
-    }
 }

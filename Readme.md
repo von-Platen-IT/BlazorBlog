@@ -88,15 +88,21 @@ Die Datenhaltung erfolgt über eine PostgreSQL-Datenbank, die in einem Docker-Co
    - Liste ausstehender Gästekommentare.  
    - Massen- und Einzelfreischaltung durch Admin/root.
 
-6. **Responsive Oberfläche**  
+6. **Responsive Oberfläche**
    - Optimiert für Desktop, Tablet und Mobilgeräte.
    - SPA ohne Full-Page-Roundtrips (Blazor Interactive Server + SignalR).
 
-7. **Datenbank-Backend**  
+7. **Mehrsprachigkeit (i18n)**
+   - Das UI unterstützt mehrere Sprachen — aktuell **Englisch** (Standard) und **Deutsch**.
+   - Ein **Sprach-Dropdown** (🌐) in der Navigationsleiste erlaubt das Umschalten zur Laufzeit.
+   - Die gewählte Sprache wird in einem Cookie gespeichert und beim nächsten Besuch wiederhergestellt.
+   - Technisch basiert die Lokalisierung auf der nativen ASP.NET Core `IStringLocalizer`-Infrastruktur mit `.resx`-Ressourcendateien.
+
+9. **Datenbank-Backend**
    - PostgreSQL, bereitgestellt in einem Docker-Container.
    - Auto-Migration beim ersten Start.
 
-8. **Benutzer- und Rechteverwaltung**  
+10. **Benutzer- und Rechteverwaltung**
    - root kann Gruppen ändern und alle Inhalte global bearbeiten/löschen.
 
 ---
@@ -143,3 +149,53 @@ On first launch the application **auto-migrates** the database and **seeds** the
 | Password     | `Root#12345!`  |
 
 Change the root password immediately after the first login.
+
+---
+
+## Adding New Languages
+
+The UI uses ASP.NET Core's native `IStringLocalizer` infrastructure with `.resx` resource files. Adding a new language requires **three steps** — no component code changes needed.
+
+### Step 1: Create a new `.resx` resource file
+
+Copy the existing `SharedResource.resx` (English) and rename it with the new culture code:
+
+```
+src/AspBaseProj.Presentation/Resources/SharedResource.{culture}.resx
+```
+
+For example, to add French:
+
+```
+src/AspBaseProj.Presentation/Resources/SharedResource.fr.resx
+```
+
+Translate all `<value>` entries to the new language. The `<data name="...">` keys must remain identical.
+
+### Step 2: Register the culture in `Program.cs`
+
+Add the new `CultureInfo` to the `supportedCultures` array in [`Program.cs`](src/AspBaseProj.Presentation/Program.cs:34):
+
+```csharp
+var supportedCultures = new[]
+{
+    new CultureInfo("en"),
+    new CultureInfo("de"),
+    new CultureInfo("fr"),   // <-- new language
+};
+```
+
+### Step 3: Add the language to the `LanguageSelector` dropdown
+
+Add the new culture to the `SupportedCultures` array in [`LanguageSelector.razor`](src/AspBaseProj.Presentation/Components/Shared/LanguageSelector.razor:24):
+
+```csharp
+private static readonly CultureInfo[] SupportedCultures =
+[
+    new("en"),
+    new("de"),
+    new("fr"),   // <-- new language
+];
+```
+
+That's it — rebuild and the new language appears in the 🌐 dropdown. The `IStringLocalizer` automatically picks the correct `.resx` file based on the active culture.
