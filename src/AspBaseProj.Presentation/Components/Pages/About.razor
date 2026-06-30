@@ -1,0 +1,34 @@
+@page "/about"
+@inject IStringLocalizer<SharedResource> L
+
+<PageTitle>@L["About_Title"]</PageTitle>
+
+<h1 class="mb-4">@L["About_Title"]</h1>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">@L["About_Heading1"]</h5>
+                <p class="text-muted">@L["About_Paragraph1"]</p>
+
+                <h5 class="card-title mt-4">@L["About_Heading2"]</h5>
+                <p class="text-muted">@L["About_Paragraph2"]</p>
+
+                <h5 class="card-title mt-4">@L["About_Heading3"]</h5>
+                <p class="text-muted">@L["About_Paragraph3"]</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">🔗 @L["About_Links"]</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="/blog" class="text-decoration-none">📝 @L["Nav_Blog"]</a></li>
+                    <li class="mb-2"><a href="/swagger" class="text-decoration-none">📚 @L["Nav_ApiDocs"]</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,3 +1,38 @@
+/* ──────────────────────────────────
+   Theme — CSS Custom Properties
+   (Switch via data-theme="dark" on html)
+   ────────────────────────────────── */
+:root,
+[data-theme="light"] {
+    --bg-body: #eef8f3;
+    --bg-navbar: #f8f9fa;
+    --bg-footer: #374151;
+    --text-brand: #1a1a2e;
+    --text-nav: #4b5563;
+    --text-nav-hover: #1a1a2e;
+    --text-nav-active: #2563eb;
+    --bg-nav-hover: #f3f4f6;
+    --bg-nav-active: #eff6ff;
+    --text-admin: #92400e;
+    --text-admin-hover: #78350f;
+    --bg-admin-hover: #fef3c7;
+    --text-user-icon: #6b7280;
+    --color-root-icon: #dc2626;
+    --border-navbar: #e5e7eb;
+    --border-mobile-section: #f3f4f6;
+    --border-footer-divider: #374151;
+    --text-footer-heading: #6b7280;
+    --text-footer: #9ca3af;
+    --text-footer-link: #d1d5db;
+    --text-footer-link-hover: #ffffff;
+    --text-footer-copyright: #6b7280;
+    --text-footer-title: #ffffff;
+    --text-mobile-role: #6b7280;
+    --text-section-label: #9ca3af;
+    --border-mobile-user: #e5e7eb;
+    --shadow-navbar: rgba(0, 0, 0, 0.06);
+}
+
 /* Markdown content styles */
 .post-content h1,
 .post-content h2,
@@ -199,4 +234,228 @@
         width: 8px;
         height: 16px;
     }
+}
+
+/* ──────────────────────────────────
+   Main Navbar — Modern Professional
+   ────────────────────────────────── */
+.main-navbar {
+    background-color: var(--bg-navbar, #f8f9fa);
+    border-bottom: 1px solid var(--border-navbar, #e5e7eb);
+    box-shadow: 0 1px 3px var(--shadow-navbar);
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+}
+
+.main-navbar .navbar-brand {
+    color: var(--text-brand);
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+    transition: color 0.2s ease;
+}
+
+.main-navbar .navbar-brand:hover {
+    color: #2563eb;
+}
+
+.main-navbar .nav-link {
+    color: var(--text-nav);
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.main-navbar .nav-link:hover {
+    color: var(--text-nav-hover);
+    background-color: var(--bg-nav-hover);
+}
+
+.main-navbar .nav-link.active {
+    color: var(--text-nav-active);
+    background-color: var(--bg-nav-active);
+}
+
+.main-navbar .navbar-toggler {
+    color: var(--text-nav);
+    border-color: var(--border-navbar);
+}
+
+.main-navbar .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.15);
+}
+
+.main-navbar .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(75, 85, 99, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Navbar right section */
+.main-navbar .navbar-right .nav-link {
+    font-size: 0.9rem;
+    color: var(--text-user-icon);
+}
+
+.main-navbar .navbar-right .nav-link:hover {
+    color: var(--text-nav-hover);
+}
+
+.main-navbar .btn-outline-secondary {
+    color: var(--text-user-icon);
+    border-color: #d1d5db;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.main-navbar .btn-outline-secondary:hover {
+    color: var(--text-nav-hover);
+    border-color: #9ca3af;
+    background-color: #f9fafb;
+}
+
+/* Admin nav items — subtle amber accent */
+.main-navbar .nav-link--admin {
+    color: var(--text-admin);
+}
+
+.main-navbar .nav-link--admin:hover {
+    color: var(--text-admin-hover);
+    background-color: var(--bg-admin-hover);
+}
+
+.main-navbar .nav-link--admin.active {
+    color: var(--text-admin);
+    background-color: var(--bg-admin-hover);
+}
+
+/* Nav user icon (person head / root shield) */
+.nav-user-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text-user-icon);
+}
+
+.nav-user-icon--xs {
+    width: 20px;
+    height: 20px;
+}
+
+.nav-user-icon--sm {
+    width: 28px;
+    height: 28px;
+}
+
+.nav-user-icon--root {
+    color: var(--color-root-icon);
+}
+
+/* Desktop user dropdown */
+.user-dropdown-toggle {
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+}
+
+.user-dropdown-toggle::after {
+    margin-left: 2px;
+}
+
+/* Mobile: user greeting at top of collapsed menu */
+.nav-mobile-user {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-mobile-user);
+    font-size: 0.9rem;
+}
+
+.nav-mobile-role {
+    font-size: 0.75rem;
+    color: var(--text-mobile-role);
+}
+
+/* Section labels in mobile nav */
+.nav-section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-section-label);
+    font-weight: 600;
+    padding: 0.75rem 1rem 0.25rem;
+    pointer-events: none;
+}
+
+/* Mobile: full-width nav items with more touch area */
+@media (max-width: 991.98px) {
+    .main-navbar .nav-link {
+        padding: 0.65rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 2px;
+    }
+
+    .main-navbar .navbar-collapse {
+        padding-top: 0.5rem;
+    }
+
+    .main-navbar .navbar-right {
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-mobile-section);
+    }
+
+    .nav-section-label {
+        margin-top: 0.25rem;
+    }
+}
+
+/* ──────────────────────────────────
+   Footer — Clean & Professional
+   ────────────────────────────────── */
+.main-footer {
+    background-color: var(--bg-footer, #374151);
+    padding: 0;
+    margin-top: 2rem;
+}
+
+.main-footer .container {
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+.main-footer .footer-brand {
+    color: var(--text-footer-title, #ffffff);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.main-footer .footer-link {
+    color: var(--text-footer-link, #d1d5db);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.15s ease;
+}
+
+.main-footer .footer-link:hover {
+    color: var(--text-footer-link-hover, #ffffff);
+}
+
+.main-footer .footer-link-separator {
+    color: var(--text-footer-heading, #6b7280);
+    font-size: 0.875rem;
+}
+
+.main-footer .footer-divider {
+    border-color: var(--border-footer-divider, #4b5563);
+    margin: 0;
+}
+
+.main-footer .footer-copyright {
+    text-align: center;
+    color: var(--text-footer-copyright, #6b7280);
+    font-size: 0.8rem;
+    padding-bottom: 1rem;
 }

@@ -49,6 +49,9 @@
 
   <!-- Navigation -->
   <data name="Nav_Brand" xml:space="preserve"><value>BlazorBlog</value></data>
+  <data name="Nav_Start" xml:space="preserve"><value>Home</value></data>
+  <data name="Nav_Blog" xml:space="preserve"><value>Blog</value></data>
+  <data name="Nav_About" xml:space="preserve"><value>About</value></data>
   <data name="Nav_Home" xml:space="preserve"><value>Home</value></data>
   <data name="Nav_MyPosts" xml:space="preserve"><value>My Posts</value></data>
   <data name="Nav_NewPost" xml:space="preserve"><value>New Post</value></data>
@@ -59,6 +62,8 @@
   <data name="Nav_Login" xml:space="preserve"><value>Login</value></data>
   <data name="Nav_Register" xml:space="preserve"><value>Register</value></data>
   <data name="Nav_Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Nav_MyArea" xml:space="preserve"><value>My Area</value></data>
+  <data name="Nav_Administration" xml:space="preserve"><value>Administration</value></data>
   <data name="Nav_ApiDocs" xml:space="preserve"><value>API Docs</value></data>
   <data name="Nav_SignOut" xml:space="preserve"><value>Sign out</value></data>
   <data name="Footer_Description" xml:space="preserve"><value>A multi-user blog platform built with .NET 10, ASP.NET Core and BootstrapBlazor.</value></data>
@@ -66,8 +71,38 @@
   <data name="Footer_Account" xml:space="preserve"><value>Account</value></data>
   <data name="Footer_Copyright" xml:space="preserve"><value>© 2026 BlazorBlog — Powered by ASP.NET Core and BootstrapBlazor</value></data>
 
+  <!-- Legal Pages -->
+  <data name="Legal_Impressum" xml:space="preserve"><value>Legal Notice</value></data>
+  <data name="Legal_ImpressumHeading" xml:space="preserve"><value>Site Notice</value></data>
+  <data name="Legal_ImpressumText" xml:space="preserve"><value>This is a placeholder for the legal notice (Impressum). In a production environment, this page must contain the legally required information according to applicable law, including the name and address of the operator, contact details, and any required registration or licensing information.</value></data>
+  <data name="Legal_Privacy" xml:space="preserve"><value>Privacy Policy</value></data>
+  <data name="Legal_PrivacyHeading" xml:space="preserve"><value>Privacy Policy</value></data>
+  <data name="Legal_PrivacyText" xml:space="preserve"><value>This is a placeholder for the privacy policy (Datenschutzerklärung). In a production environment, this page must describe how personal data is collected, processed, and stored in compliance with applicable data protection regulations such as the GDPR.</value></data>
+
   <!-- Home / Post List -->
   <data name="Home_Title" xml:space="preserve"><value>Latest Posts</value></data>
+
+  <!-- Start / Landing Page -->
+  <data name="Start_Welcome" xml:space="preserve"><value>A multi-user blog platform built with .NET 10 and ASP.NET Core. Read, write, and share your thoughts with the world.</value></data>
+  <data name="Start_ViewBlog" xml:space="preserve"><value>Browse Blog Posts</value></data>
+  <data name="Start_FeaturePosts_Title" xml:space="preserve"><value>Rich Blog Posts</value></data>
+  <data name="Start_FeaturePosts_Text" xml:space="preserve"><value>Create beautiful blog posts with markdown support, image uploads, and embedded social media cards.</value></data>
+  <data name="Start_FeatureComments_Title" xml:space="preserve"><value>Nested Comments</value></data>
+  <data name="Start_FeatureComments_Text" xml:space="preserve"><value>Engage with threaded discussions. Authenticated users comment instantly; guests await moderation.</value></data>
+  <data name="Start_FeatureRoles_Title" xml:space="preserve"><value>Role-Based Access</value></data>
+  <data name="Start_FeatureRoles_Text" xml:space="preserve"><value>Authors create content, Admins moderate, and Viewers enjoy. All under a responsive SPA interface.</value></data>
+  <data name="Start_AboutTitle" xml:space="preserve"><value>About BlazorBlog</value></data>
+  <data name="Start_AboutText" xml:space="preserve"><value>BlazorBlog is a modern, fullstack blogging platform that demonstrates the power of ASP.NET Core, Blazor Interactive Server, and PostgreSQL. It features a responsive SPA that feels like a desktop application — no full page reloads, just smooth interactivity via SignalR. Built with clean architecture principles: Domain, Application, Infrastructure, and Presentation layers. The project embraces modern .NET 10 capabilities with role-based authorization, OAuth 2.0 social login, and a RESTful Web API with Swagger documentation.</value></data>
+
+  <!-- About Page -->
+  <data name="About_Title" xml:space="preserve"><value>About</value></data>
+  <data name="About_Heading1" xml:space="preserve"><value>Our Mission</value></data>
+  <data name="About_Paragraph1" xml:space="preserve"><value>We believe in the power of words and community. BlazorBlog provides a platform where authors can share their stories, readers can engage through comments and ratings, and administrators can maintain a respectful environment through moderation.</value></data>
+  <data name="About_Heading2" xml:space="preserve"><value>Technology Stack</value></data>
+  <data name="About_Paragraph2" xml:space="preserve"><value>Built on .NET 10 with ASP.NET Core, this application uses Blazor Interactive Server for a desktop-like SPA experience. PostgreSQL handles data persistence with Entity Framework Core. The architecture follows clean code principles with a clear separation of concerns across Domain, Application, Infrastructure, and Presentation layers.</value></data>
+  <data name="About_Heading3" xml:space="preserve"><value>Open Source</value></data>
+  <data name="About_Paragraph3" xml:space="preserve"><value>This project is open source and serves as a reference implementation for building modern fullstack web applications with .NET. It demonstrates best practices for authentication, authorization, responsive design, localization, and RESTful API design.</value></data>
+  <data name="About_Links" xml:space="preserve"><value>Quick Links</value></data>
   <data name="Home_NoPosts" xml:space="preserve"><value>No posts yet.</value></data>
   <data name="Home_WriteFirstPost" xml:space="preserve"><value>Write the first post</value></data>
   <data name="PostList_By" xml:space="preserve"><value>By</value></data>

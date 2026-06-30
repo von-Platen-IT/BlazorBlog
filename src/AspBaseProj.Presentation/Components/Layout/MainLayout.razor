@@ -3,40 +3,125 @@
 
 <div class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 shadow-sm">
+        <nav class="navbar navbar-expand-lg main-navbar px-3" style="background-color:#f8f9fa;">
             <div class="container-fluid">
-                <a class="navbar-brand fw-bold fs-5" href="/">📝 @L["Nav_Brand"]</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                <a class="navbar-brand fw-bold fs-5" href="/">@L["Nav_Brand"]</a>
+                @* Mobile: show user icon next to toggler when authenticated *@
+                <div class="d-flex align-items-center gap-2 d-lg-none">
+                    @if (IsAuthenticated)
+                    {
+                        <span class="nav-user-icon nav-user-icon--sm @(IsRoot ? "nav-user-icon--root" : "")" title="@UserName">
+                            @if (IsRoot)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.264.19.791.19 1.055 0a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.189a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.83.24s-.55-.108-.83-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/></svg>
+                            }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg>
+                            }
+                        </span>
+                    }
+                    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </div>
                 <div class="collapse navbar-collapse" id="mainNav">
+                    @* Mobile: user greeting at top of collapsed menu *@
+                    @if (IsAuthenticated)
+                    {
+                        <div class="nav-mobile-user d-lg-none">
+                            <span class="nav-user-icon @(IsRoot ? "nav-user-icon--root" : "") me-2">
+                                @if (IsRoot)
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.264.19.791.19 1.055 0a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.189a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.83.24s-.55-.108-.83-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/></svg>
+                                }
+                                else
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg>
+                                }
+                            </span>
+                            <div>
+                                <div class="fw-semibold">@UserName</div>
+                                <div class="nav-mobile-role">@UserRoleLabel</div>
+                            </div>
+                        </div>
+                    }
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item"><NavLink class="nav-link" href="/">@L["Nav_Home"]</NavLink></li>
+                        <li class="nav-item"><NavLink class="nav-link" href="/" Match="NavLinkMatch.All">@L["Nav_Start"]</NavLink></li>
+                        <li class="nav-item"><NavLink class="nav-link" href="/blog">@L["Nav_Blog"]</NavLink></li>
+                        <li class="nav-item"><NavLink class="nav-link" href="/about">@L["Nav_About"]</NavLink></li>
+                        @* My Posts + New Post moved into user dropdown *@
                         @if (IsAuthenticated && (IsAuthor || IsAdmin || IsRoot))
                         {
-                            <li class="nav-item"><NavLink class="nav-link" href="/my/posts">📋 @L["Nav_MyPosts"]</NavLink></li>
-                            <li class="nav-item"><NavLink class="nav-link" href="/posts/new">✏️ @L["Nav_NewPost"]</NavLink></li>
+                            <li class="nav-section-label d-lg-none">@L["Nav_MyArea"]</li>
+                            <li class="nav-item d-lg-none"><NavLink class="nav-link" href="/my/posts">@L["Nav_MyPosts"]</NavLink></li>
+                            <li class="nav-item d-lg-none"><NavLink class="nav-link" href="/posts/new">@L["Nav_NewPost"]</NavLink></li>
                         }
                         @if (IsAdmin || IsRoot)
                         {
-                            <li class="nav-item"><NavLink class="nav-link" href="/admin/moderation">✅ @L["Nav_Moderation"]</NavLink></li>
+                            <li class="nav-section-label d-lg-none">@L["Nav_Administration"]</li>
+                            <li class="nav-item"><NavLink class="nav-link nav-link--admin" href="/admin/moderation">@L["Nav_Moderation"]</NavLink></li>
                         }
                         @if (IsRoot)
                         {
-                            <li class="nav-item"><NavLink class="nav-link" href="/admin/users">👥 @L["Nav_Users"]</NavLink></li>
-                            <li class="nav-item"><NavLink class="nav-link" href="/admin/settings">⚙️ @L["Nav_Settings"]</NavLink></li>
+                            <li class="nav-item"><NavLink class="nav-link nav-link--admin" href="/admin/users">@L["Nav_Users"]</NavLink></li>
+                            <li class="nav-item"><NavLink class="nav-link nav-link--admin" href="/admin/settings">@L["Nav_Settings"]</NavLink></li>
                         }
                     </ul>
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav navbar-right">
                         <li class="nav-item d-flex align-items-center me-2">
                             <LanguageSelector />
                         </li>
                         @if (IsAuthenticated)
                         {
-                            <li class="nav-item"><NavLink class="nav-link" href="/profile">👤 @UserName</NavLink></li>
-                            <li class="nav-item d-flex align-items-center ms-2">
+                            @* Desktop: user dropdown with profile icon *@
+                            <li class="nav-item dropdown d-none d-lg-block">
+                                <a class="nav-link dropdown-toggle user-dropdown-toggle @(IsRoot ? "fw-bold" : "")" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="nav-user-icon nav-user-icon--xs @(IsRoot ? "nav-user-icon--root" : "")">
+                                        @if (IsRoot)
+                                        {
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.264.19.791.19 1.055 0a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.189a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.83.24s-.55-.108-.83-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/></svg>
+                                        }
+                                        else
+                                        {
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/><path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/></svg>
+                                        }
+                                    </span>
+                                    @if (IsRoot)
+                                    {
+                                        <strong>root</strong>
+                                    }
+                                    else
+                                    {
+                                        @UserName
+                                    }
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    @if (IsAuthor || IsAdmin || IsRoot)
+                                    {
+                                        <li><NavLink class="dropdown-item" href="/my/posts">@L["Nav_MyPosts"]</NavLink></li>
+                                        <li><NavLink class="dropdown-item" href="/posts/new">@L["Nav_NewPost"]</NavLink></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                    }
+                                    <li><NavLink class="dropdown-item" href="/profile">@L["Nav_Profile"]</NavLink></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <form method="post" action="/api/auth/logout">
+                                            <button type="submit" class="dropdown-item">@L["Nav_Logout"]</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                            @* Mobile: My Posts + New Post + profile + logout as regular items *@
+                            @if (IsAuthor || IsAdmin || IsRoot)
+                            {
+                                <li class="nav-item d-lg-none"><NavLink class="nav-link" href="/my/posts">@L["Nav_MyPosts"]</NavLink></li>
+                                <li class="nav-item d-lg-none"><NavLink class="nav-link" href="/posts/new">@L["Nav_NewPost"]</NavLink></li>
+                            }
+                            <li class="nav-item d-lg-none"><NavLink class="nav-link" href="/profile">@L["Nav_Profile"]</NavLink></li>
+                            <li class="nav-item d-lg-none">
                                 <form method="post" action="/api/auth/logout">
-                                    <button type="submit" class="btn btn-outline-light btn-sm">@L["Nav_Logout"]</button>
+                                    <button type="submit" class="nav-link btn btn-link w-100 text-start">@L["Nav_Logout"]</button>
                                 </form>
                             </li>
                         }
@@ -51,7 +136,7 @@
         </nav>
     </header>
 
-    <main class="flex-grow-1">
+    <main class="flex-grow-1" style="background-color:#eef8f3;">
         <div class="container mt-4 mb-5">
             <CascadingAuthState>
                 @Body
@@ -59,48 +144,20 @@
         </div>
     </main>
 
-    <footer class="bg-dark text-light py-4 mt-auto">
+    <footer class="main-footer" style="background-color:#374151;">
         <div class="container">
-            <div class="row g-3">
-                <div class="col-md-5">
-                    <h5 class="fw-bold mb-2">📝 @L["Nav_Brand"]</h5>
-                    <p class="text-secondary small mb-0">
-                        @L["Footer_Description"]
-                    </p>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center py-4">
+                <div class="mb-3 mb-md-0">
+                    <span class="footer-brand">@L["Nav_Brand"]</span>
                 </div>
-                <div class="col-md-3">
-                    <h6 class="text-uppercase small fw-bold text-secondary mb-2">@L["Footer_Navigation"]</h6>
-                    <ul class="list-unstyled small">
-                        <li class="mb-1"><a href="/" class="text-light text-decoration-none">@L["Nav_Home"]</a></li>
-                        @if (IsAuthenticated && (IsAuthor || IsAdmin || IsRoot))
-                        {
-                            <li class="mb-1"><a href="/my/posts" class="text-light text-decoration-none">@L["Nav_MyPosts"]</a></li>
-                        }
-                        <li class="mb-1"><a href="/swagger" class="text-light text-decoration-none">@L["Nav_ApiDocs"]</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h6 class="text-uppercase small fw-bold text-secondary mb-2">@L["Footer_Account"]</h6>
-                    <ul class="list-unstyled small">
-                        @if (IsAuthenticated)
-                        {
-                            <li class="mb-1"><a href="/profile" class="text-light text-decoration-none">@L["Nav_Profile"]</a></li>
-                            <li>
-                                <form method="post" action="/api/auth/logout">
-                                    <button type="submit" class="btn btn-link text-secondary p-0 small">@L["Nav_SignOut"]</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="mb-1"><a href="/login" class="text-light text-decoration-none">@L["Nav_Login"]</a></li>
-                            <li class="mb-1"><a href="/register" class="text-light text-decoration-none">@L["Nav_Register"]</a></li>
-                        }
-                    </ul>
+                <div class="d-flex gap-3">
+                    <a href="/impressum" class="footer-link">@L["Legal_Impressum"]</a>
+                    <span class="footer-link-separator">|</span>
+                    <a href="/privacy" class="footer-link">@L["Legal_Privacy"]</a>
                 </div>
             </div>
-            <hr class="border-secondary mt-3 mb-2" />
-            <div class="text-center text-secondary small">
+            <hr class="footer-divider" />
+            <div class="footer-copyright">
                 @L["Footer_Copyright"]
             </div>
         </div>
@@ -113,6 +170,18 @@
     private bool IsAdmin;
     private bool IsRoot;
     private string? UserName;
+
+    private string UserInitials => string.IsNullOrWhiteSpace(UserName)
+        ? "?"
+        : string.Concat(UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => char.ToUpper(s[0])));
+
+    private string UserRoleLabel => IsRoot
+        ? "Administrator"
+        : IsAdmin
+            ? "Admin"
+            : IsAuthor
+                ? "Author"
+                : "User";
 
     protected override async Task OnInitializedAsync()
     {
