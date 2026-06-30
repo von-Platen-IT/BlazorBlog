@@ -111,6 +111,8 @@
   <data name="Comments_RepliesClosed" xml:space="preserve"><value>Replies are closed for this thread</value></data>
   <data name="Comments_Anonymous" xml:space="preserve"><value>Anonymous</value></data>
   <data name="Comments_FailedReply" xml:space="preserve"><value>Failed to post reply. Please try again.</value></data>
+  <data name="Comments_CharCount" xml:space="preserve"><value>{0} / {1} characters</value></data>
+  <data name="Comments_MaxLengthHint" xml:space="preserve"><value>Maximum {0} characters</value></data>
 
   <!-- Login -->
   <data name="Login_Title" xml:space="preserve"><value>Login</value></data>
@@ -207,14 +209,18 @@
   <data name="Mod_RejectSelected" xml:space="preserve"><value>❌ Reject Selected ({0})</value></data>
   <data name="Mod_ColAuthor" xml:space="preserve"><value>Author</value></data>
   <data name="Mod_ColContent" xml:space="preserve"><value>Content</value></data>
+  <data name="Mod_ColPost" xml:space="preserve"><value>Post</value></data>
   <data name="Mod_ColDate" xml:space="preserve"><value>Date</value></data>
   <data name="Mod_ColActions" xml:space="preserve"><value>Actions</value></data>
+  <data name="Mod_OpenPost" xml:space="preserve"><value>Open post in new tab</value></data>
   <data name="Mod_Approve" xml:space="preserve"><value>Approve</value></data>
   <data name="Mod_Reject" xml:space="preserve"><value>Reject</value></data>
   <data name="Mod_Approved" xml:space="preserve"><value>Comment approved.</value></data>
   <data name="Mod_Rejected" xml:space="preserve"><value>Comment rejected.</value></data>
   <data name="Mod_BulkApproved" xml:space="preserve"><value>Approved {0} comment(s).</value></data>
   <data name="Mod_BulkRejected" xml:space="preserve"><value>Rejected {0} comment(s).</value></data>
+  <data name="Mod_ShowMore" xml:space="preserve"><value>Show more</value></data>
+  <data name="Mod_ShowLess" xml:space="preserve"><value>Show less</value></data>
 
   <!-- User Management -->
   <data name="Users_Title" xml:space="preserve"><value>User Management</value></data>

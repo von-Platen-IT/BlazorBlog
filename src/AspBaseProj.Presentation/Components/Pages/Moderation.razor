@@ -37,6 +37,7 @@ else
                 <tr>
                     <th style="width:40px"><input type="checkbox" @onchange="ToggleAll" /></th>
                     <th>@L["Mod_ColAuthor"]</th>
+                    <th>@L["Mod_ColPost"]</th>
                     <th>@L["Mod_ColContent"]</th>
                     <th>@L["Mod_ColDate"]</th>
                     <th style="width:180px">@L["Mod_ColActions"]</th>
@@ -51,7 +52,33 @@ else
                                    @onchange="() => ToggleSelect(c.Id)" />
                         </td>
                         <td>@(c.GuestName ?? L["Common_Guest"])</td>
-                        <td>@c.Content</td>
+                        <td>
+                            <a href="/posts/@c.PostId" target="_blank" rel="noopener" title="@L["Mod_OpenPost"]">
+                                @(c.PostTitle ?? c.PostId.ToString())
+                            </a>
+                        </td>
+                        <td>
+                            @if (c.Content.Length <= 200)
+                            {
+                                @c.Content
+                            }
+                            else if (expandedComments.Contains(c.Id))
+                            {
+                                @c.Content
+                                <button class="btn btn-link btn-sm p-0 ms-1"
+                                        @onclick="() => expandedComments.Remove(c.Id)">
+                                    @L["Mod_ShowLess"]
+                                </button>
+                            }
+                            else
+                            {
+                                @(c.Content[..200] + "…")
+                                <button class="btn btn-link btn-sm p-0 ms-1"
+                                        @onclick="() => expandedComments.Add(c.Id)">
+                                    @L["Mod_ShowMore"]
+                                </button>
+                            }
+                        </td>
                         <td class="text-nowrap small">@c.CreatedAt.ToString("g")</td>
                         <td>
                             <Button Color="Color.Success" Size="Size.Small" OnClick="() => Approve(c.Id)">@L["Mod_Approve"]</Button>
@@ -65,8 +92,10 @@ else
 }
 
 @code {
+    private const int ContentPreviewLength = 200;
     private List<CommentDto>? comments;
     private HashSet<Guid> selectedIds = [];
+    private HashSet<Guid> expandedComments = [];
     private string? error;
     private string? successMessage;
 

@@ -5,7 +5,7 @@
 > **Edit this file to reflect schema changes** — the AI agent will update code accordingly.
 
 **Technology:** .NET 10 Fullstack (ASP.NET Core, PostgreSQL, EF Core)
-**Last Updated:** 2026-06-22 18:15
+**Last Updated:** 2026-06-30 10:31
 
 ---
 
@@ -22,7 +22,7 @@ Represents a registered user of the blog platform. The root superuser is seeded 
 | `Id` | `Guid` | No | Primary key |
 | `UserName` | `string` | No | Unique username for login |
 | `Email` | `string` | Yes | User email address |
-| `PasswordHash` | `string` | No | Hashed password |
+| `PasswordHash` | `string` | Yes | Hashed password; null for OAuth users |
 | `IsRoot` | `bool` | No | True only for the root superuser account; root is not assigned to any group |
 | `CreatedAt` | `DateTime` | No | Account creation timestamp |
 | `UpdatedAt` | `DateTime` | Yes | Last update timestamp |
@@ -30,6 +30,7 @@ Represents a registered user of the blog platform. The root superuser is seeded 
 #### Relationships
 
 - **Many To Many** `Group`: A user can belong to multiple groups (Author, Admin, Viewer). Root has no group.
+- **One To Many** `ExternalLogin`: A user can have multiple OAuth external login associations
 - **One To Many** `Post`: A user authors multiple blog posts
 - **One To Many** `Comment`: A user writes multiple comments
 
@@ -50,6 +51,26 @@ Represents a user role/group: Author, Admin, Viewer, or Public.
 #### Relationships
 
 - **Many To Many** `AppUser`: Multiple users can belong to a group
+
+---
+
+### ExternalLogin
+
+Represents an OAuth 2.0 external login association for a user (Google, GitHub, Microsoft).
+
+#### Fields
+
+| Field | Type | Nullable | Description |
+|-------|------|----------|-------------|
+| `Id` | `Guid` | No | Primary key |
+| `UserId` | `Guid` | No | FK to AppUser this login belongs to |
+| `Provider` | `string` | No | OAuth provider name (Google, GitHub, Microsoft) |
+| `ProviderKey` | `string` | No | Unique identifier from the OAuth provider |
+| `CreatedAt` | `DateTime` | No | Association creation timestamp |
+
+#### Relationships
+
+- **Many To One** `AppUser`: Each external login belongs to one user
 
 ---
 
@@ -130,7 +151,7 @@ Represents a comment on a blog post. Supports nesting via ParentCommentId. Guest
 | Field | Type | Nullable | Description |
 |-------|------|----------|-------------|
 | `Id` | `Guid` | No | Primary key |
-| `Content` | `string` | No | Comment text |
+| `Content` | `string` | No | Comment text (max 8000 characters) |
 | `PostId` | `Guid` | No | FK to Post being commented on |
 | `UserId` | `Guid` | Yes | FK to AppUser if commenter is authenticated; null for guests |
 | `ParentCommentId` | `Guid` | Yes | FK to parent Comment for nested replies; null for top-level comments |
@@ -199,12 +220,12 @@ Key-value store for blog-wide configuration such as blog title, moderation toggl
 - `unnamed`: Index on PostId for PostRating count queries
 - `unnamed`: Unique composite index on (PostId, UserId) for Bookmark
 - `unnamed`: Index on UserId for Bookmark user queries
+- `unnamed`: Unique composite index on (Provider, ProviderKey) for ExternalLogin
+- `unnamed`: Index on UserId for ExternalLogin user queries
 
 ## Additional Notes
 
-The root superuser is seeded on first launch with credentials from appsettings.json (Blog section). Root is not assigned to any Group but has unrestricted permissions. Guest comments (UserId is null) require manual approval by Admin or root before becoming publicly visible. Authenticated users' comments are auto-approved. Images are stored as binary in the Media table, not on the filesystem. The database auto-migrates on first launch. PostgreSQL runs in Docker on host port 5433 mapped to container port 5432. PostRating enforces one vote per user per post (unique constraint on PostId+UserId). Bookmark enforces one bookmark per user per post (unique constraint on PostId+UserId).
-
-The root superuser is seeded on first launch with credentials from appsettings.json (Blog section). Root is not assigned to any Group but has unrestricted permissions. Guest comments (UserId is null) require manual approval by Admin or root before becoming publicly visible. Authenticated users' comments are auto-approved. Images are stored as binary in the Media table, not on the filesystem. The database auto-migrates on first launch. PostgreSQL runs in Docker on host port 5433 mapped to container port 5432.
+The root superuser is seeded on first launch with credentials from appsettings.json (Blog section). Root is not assigned to any Group but has unrestricted permissions. Guest comments (UserId is null) require manual approval by Admin or root before becoming publicly visible. Authenticated users' comments are auto-approved. Images are stored as binary in the Media table, not on the filesystem. The database auto-migrates on first launch. PostgreSQL runs in Docker on host port 5433 mapped to container port 5432. PostRating enforces one vote per user per post (unique constraint on PostId+UserId). Bookmark enforces one bookmark per user per post (unique constraint on PostId+UserId). ExternalLogin enforces one association per provider per user (unique constraint on Provider+ProviderKey). OAuth users have a null PasswordHash since they authenticate via external providers.
 
 ---
 

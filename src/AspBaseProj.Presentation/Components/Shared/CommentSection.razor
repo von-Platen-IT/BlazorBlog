@@ -31,13 +31,19 @@
                             </div>
                         </div>
                     }
-                    <textarea class="form-control mb-2" rows="3" @bind="newCommentText"
+                    <textarea class="form-control mb-1" rows="3" @bind="newCommentText"
                               @bind:event="oninput"
                               placeholder="@L["Comments_PlaceholderText"]"></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="@(newCommentText.Length > MaxCommentLength ? "text-danger fw-bold" : "text-muted")">
+                            @L["Comments_CharCount", newCommentText.Length, MaxCommentLength]
+                        </small>
+                        <small class="text-muted">@L["Comments_MaxLengthHint", MaxCommentLength]</small>
+                    </div>
                     <div class="d-flex align-items-center gap-2">
                         <button class="btn btn-primary"
                                 @onclick="SubmitTopLevelCommentAsync"
-                                disabled="@(string.IsNullOrWhiteSpace(newCommentText) || isSubmitting)">
+                                disabled="@(string.IsNullOrWhiteSpace(newCommentText) || isSubmitting || newCommentText.Length > MaxCommentLength)">
                             @(isSubmitting ? L["Comments_Posting"] : L["Comments_Submit"])
                         </button>
                     </div>
@@ -76,6 +82,7 @@
     private List<CommentDto> comments = new();
     private bool isAuthenticated;
     private bool isLoading = true;
+    private const int MaxCommentLength = 8000;
     private bool isSubmitting;
     private bool showGuestThankYou;
     private string newCommentText = "";

@@ -42,13 +42,19 @@
                         </div>
                     </div>
                 }
-                <textarea class="form-control form-control-sm mb-2" rows="2"
+                <textarea class="form-control form-control-sm mb-1" rows="2"
                           @bind="replyText" @bind:event="oninput"
                           placeholder="@L["Comments_ReplyPlaceholder"]"></textarea>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="@(replyText.Length > MaxCommentLength ? "text-danger fw-bold" : "text-muted")">
+                        @L["Comments_CharCount", replyText.Length, MaxCommentLength]
+                    </small>
+                    <small class="text-muted">@L["Comments_MaxLengthHint", MaxCommentLength]</small>
+                </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-primary"
                             @onclick="SubmitReplyAsync"
-                            disabled="@(string.IsNullOrWhiteSpace(replyText) || isSubmitting)">
+                            disabled="@(string.IsNullOrWhiteSpace(replyText) || isSubmitting || replyText.Length > MaxCommentLength)">
                         @(isSubmitting ? L["Comments_Posting"] : L["Comments_SubmitReply"])
                     </button>
                     <button class="btn btn-sm btn-secondary"
@@ -78,6 +84,7 @@
     [Parameter] public bool IsAuthenticated { get; set; }
 
     private const int MaxDepth = 5;
+    private const int MaxCommentLength = 8000;
 
     private bool showReplyForm;
     private string replyText = "";

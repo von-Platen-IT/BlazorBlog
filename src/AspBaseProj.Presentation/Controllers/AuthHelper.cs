@@ -45,6 +45,7 @@ internal static class AuthHelper
     public static CommentDto MapComment(Comment c) => new CommentDto(
         c.Id, c.Content, c.PostId, c.UserId, c.ParentCommentId, c.GuestName, c.IsApproved, c.CreatedAt,
         c.User is not null ? new UserRefDto(c.User.Id, c.User.UserName) : null,
-        c.Replies.Select(MapComment).ToList()
+        c.Replies.Select(MapComment).ToList(),
+        c.Post?.Title
     );
 }

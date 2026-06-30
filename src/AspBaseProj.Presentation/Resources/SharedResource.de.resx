@@ -111,6 +111,8 @@
   <data name="Comments_RepliesClosed" xml:space="preserve"><value>Antworten sind in diesem Thread geschlossen</value></data>
   <data name="Comments_Anonymous" xml:space="preserve"><value>Anonym</value></data>
   <data name="Comments_FailedReply" xml:space="preserve"><value>Antwort konnte nicht gesendet werden. Bitte erneut versuchen.</value></data>
+  <data name="Comments_CharCount" xml:space="preserve"><value>{0} / {1} Zeichen</value></data>
+  <data name="Comments_MaxLengthHint" xml:space="preserve"><value>Maximal {0} Zeichen</value></data>
 
   <!-- Login -->
   <data name="Login_Title" xml:space="preserve"><value>Anmelden</value></data>
@@ -207,14 +209,18 @@
   <data name="Mod_RejectSelected" xml:space="preserve"><value>❌ Ausgewählte ablehnen ({0})</value></data>
   <data name="Mod_ColAuthor" xml:space="preserve"><value>Autor</value></data>
   <data name="Mod_ColContent" xml:space="preserve"><value>Inhalt</value></data>
+  <data name="Mod_ColPost" xml:space="preserve"><value>Beitrag</value></data>
   <data name="Mod_ColDate" xml:space="preserve"><value>Datum</value></data>
   <data name="Mod_ColActions" xml:space="preserve"><value>Aktionen</value></data>
+  <data name="Mod_OpenPost" xml:space="preserve"><value>Beitrag in neuem Tab öffnen</value></data>
   <data name="Mod_Approve" xml:space="preserve"><value>Freigeben</value></data>
   <data name="Mod_Reject" xml:space="preserve"><value>Ablehnen</value></data>
   <data name="Mod_Approved" xml:space="preserve"><value>Kommentar freigegeben.</value></data>
   <data name="Mod_Rejected" xml:space="preserve"><value>Kommentar abgelehnt.</value></data>
   <data name="Mod_BulkApproved" xml:space="preserve"><value>{0} Kommentar(en) freigegeben.</value></data>
   <data name="Mod_BulkRejected" xml:space="preserve"><value>{0} Kommentar(en) abgelehnt.</value></data>
+  <data name="Mod_ShowMore" xml:space="preserve"><value>Mehr anzeigen</value></data>
+  <data name="Mod_ShowLess" xml:space="preserve"><value>Weniger anzeigen</value></data>
 
   <!-- User Management -->
   <data name="Users_Title" xml:space="preserve"><value>Benutzerverwaltung</value></data>
